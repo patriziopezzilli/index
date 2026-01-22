@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct AddConnectionView: View {
+    var onSave: ((DatabaseConnection) -> Void)? = nil
+
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var appState: AppState
     @StateObject private var databaseService = DatabaseService()
@@ -230,11 +232,16 @@ struct AddConnectionView: View {
             sshConfig: sshConfig
         )
 
-        withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
-            appState.addConnection(connection)
+        if let onSave = onSave {
+            // Use callback if provided (from ConnectionsListView)
+            onSave(connection)
+        } else {
+            // Fallback to appState for backwards compatibility
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                appState.addConnection(connection)
+            }
+            dismiss()
         }
-
-        dismiss()
     }
 }
 

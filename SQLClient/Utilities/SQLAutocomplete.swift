@@ -7,6 +7,8 @@ class SQLAutocomplete {
         let type: SuggestionType
         let description: String?
 
+        var detail: String? { description }
+
         enum SuggestionType {
             case keyword
             case table
@@ -100,6 +102,66 @@ class SQLAutocomplete {
         }
 
         return Array(suggestions.prefix(10)) // Limit to 10 suggestions
+    }
+
+    // New simplified method for use with current word and schema
+    static func getSuggestions(
+        for query: String,
+        currentWord: String,
+        schema: DatabaseSchema?
+    ) -> [Suggestion] {
+        let word = currentWord.uppercased()
+        guard !word.isEmpty else { return [] }
+
+        var suggestions: [Suggestion] = []
+
+        // Add matching keywords
+        for keyword in sqlKeywords {
+            if keyword.hasPrefix(word) {
+                suggestions.append(Suggestion(
+                    text: keyword,
+                    type: .keyword,
+                    description: "Keyword"
+                ))
+            }
+        }
+
+        // Add matching functions
+        for function in sqlFunctions {
+            if function.uppercased().hasPrefix(word) {
+                suggestions.append(Suggestion(
+                    text: function,
+                    type: .function,
+                    description: "Function"
+                ))
+            }
+        }
+
+        // Add matching tables from schema
+        if let schema = schema {
+            for table in schema.tables {
+                if table.name.uppercased().hasPrefix(word) {
+                    suggestions.append(Suggestion(
+                        text: table.name,
+                        type: .table,
+                        description: "\(table.columns.count) columns"
+                    ))
+                }
+
+                // Add matching columns
+                for column in table.columns {
+                    if column.name.uppercased().hasPrefix(word) {
+                        suggestions.append(Suggestion(
+                            text: column.name,
+                            type: .column,
+                            description: "\(table.name).\(column.type)"
+                        ))
+                    }
+                }
+            }
+        }
+
+        return Array(suggestions.prefix(10))
     }
 
     static func getCommonSnippets() -> [Suggestion] {
