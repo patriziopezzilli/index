@@ -33,6 +33,10 @@
 		A1000024 /* SQLFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000024 /* SQLFormatter.swift */; };
 		A1000025 /* SQLSyntaxHighlighter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000025 /* SQLSyntaxHighlighter.swift */; };
 		A1000026 /* SQLTextEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000026 /* SQLTextEditor.swift */; };
+		A1000027 /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000028 /* KeychainService.swift */; };
+		A1000028 /* ConnectionsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000029 /* ConnectionsListView.swift */; };
+		A1000029 /* SQLEditorWithAutocomplete.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000030 /* SQLEditorWithAutocomplete.swift */; };
+		A1000030 /* QueryHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000031 /* QueryHistoryView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -64,6 +68,10 @@
 		B1000025 /* SQLSyntaxHighlighter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLSyntaxHighlighter.swift; sourceTree = "<group>"; };
 		B1000026 /* SQLTextEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLTextEditor.swift; sourceTree = "<group>"; };
 		B1000027 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		B1000028 /* KeychainService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainService.swift; sourceTree = "<group>"; };
+		B1000029 /* ConnectionsListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionsListView.swift; sourceTree = "<group>"; };
+		B1000030 /* SQLEditorWithAutocomplete.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLEditorWithAutocomplete.swift; sourceTree = "<group>"; };
+		B1000031 /* QueryHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueryHistoryView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -127,6 +135,7 @@
 				B1000005 /* DatabaseService.swift */,
 				B1000021 /* DatabaseDriver.swift */,
 				B1000022 /* SQLiteDriver.swift */,
+				B1000028 /* KeychainService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -159,6 +168,7 @@
 			children = (
 				B1000008 /* ConnectionsView.swift */,
 				B1000009 /* AddConnectionView.swift */,
+				B1000029 /* ConnectionsListView.swift */,
 			);
 			path = Connections;
 			sourceTree = "<group>";
@@ -169,6 +179,7 @@
 				B1000010 /* SQLEditorView.swift */,
 				B1000011 /* QueryResultView.swift */,
 				B1000026 /* SQLTextEditor.swift */,
+				B1000030 /* SQLEditorWithAutocomplete.swift */,
 			);
 			path = Editor;
 			sourceTree = "<group>";
@@ -177,6 +188,7 @@
 			isa = PBXGroup;
 			children = (
 				B1000012 /* HistoryView.swift */,
+				B1000031 /* QueryHistoryView.swift */,
 			);
 			path = History;
 			sourceTree = "<group>";
@@ -309,6 +321,10 @@
 				A1000024 /* SQLFormatter.swift in Sources */,
 				A1000025 /* SQLSyntaxHighlighter.swift in Sources */,
 				A1000026 /* SQLTextEditor.swift in Sources */,
+				A1000027 /* KeychainService.swift in Sources */,
+				A1000028 /* ConnectionsListView.swift in Sources */,
+				A1000029 /* SQLEditorWithAutocomplete.swift in Sources */,
+				A1000030 /* QueryHistoryView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
