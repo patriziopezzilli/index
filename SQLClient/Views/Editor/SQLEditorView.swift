@@ -8,6 +8,7 @@ struct SQLEditorView: View {
     @State private var showingSavedQueriesSheet = false
     @State private var schemaInsertText: String?
     @State private var savedQueryLoadText: String?
+    @Binding var queryToRun: String?
 
     var body: some View {
         NavigationView {
@@ -107,16 +108,22 @@ struct SQLEditorView: View {
             .sheet(isPresented: $showingSavedQueriesSheet) {
                 SavedQueriesView(loadQuery: $savedQueryLoadText)
             }
-            .onChange(of: schemaInsertText) { newValue in
+            .onChange(of: schemaInsertText) { _, newValue in
                 if let text = newValue, let tab = tabManager.currentTab {
                     tab.query += (tab.query.isEmpty ? "" : "\n") + text
                     schemaInsertText = nil
                 }
             }
-            .onChange(of: savedQueryLoadText) { newValue in
+            .onChange(of: savedQueryLoadText) { _, newValue in
                 if let text = newValue {
                     tabManager.addTab(withQuery: text)
                     savedQueryLoadText = nil
+                }
+            }
+            .onChange(of: queryToRun) { _, newValue in
+                if let query = newValue {
+                    tabManager.addTab(withQuery: query)
+                    queryToRun = nil
                 }
             }
         }
@@ -255,7 +262,7 @@ struct TabContentView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            SQLTextEditor(
+            SQLEditorWithAutocomplete(
                 text: Binding(
                     get: { tab.query },
                     set: { newValue in
@@ -263,7 +270,6 @@ struct TabContentView: View {
                         tab.updateName(from: newValue)
                     }
                 ),
-                placeholder: "Write your SQL query here...\n\nExample:\nSELECT * FROM users WHERE created_at > '2024-01-01';",
                 onFormat: {
                     tab.query = SQLFormatter.format(tab.query)
                 }

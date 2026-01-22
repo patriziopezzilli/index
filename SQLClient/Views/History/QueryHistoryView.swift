@@ -6,7 +6,7 @@ struct QueryHistoryView: View {
     @State private var filterOption: FilterOption = .all
     @State private var selectedQuery: QueryHistory?
     @State private var showingQueryDetail = false
-    @Binding var onRerun: (String) -> Void
+    let onRerun: (String) -> Void
 
     enum FilterOption: String, CaseIterable {
         case all = "All"
