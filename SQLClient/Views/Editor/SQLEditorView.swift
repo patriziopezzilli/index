@@ -60,25 +60,37 @@ struct SQLEditorView: View {
                 }
 
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: {
-                        if let tab = tabManager.currentTab {
-                            executeQuery(for: tab)
+                    HStack(spacing: 12) {
+                        Button(action: {
+                            if let tab = tabManager.currentTab {
+                                formatQuery(for: tab)
+                            }
+                        }) {
+                            Image(systemName: "arrow.up.left.and.arrow.down.right")
+                                .foregroundColor(.white.opacity(0.8))
                         }
-                    }) {
-                        HStack(spacing: 6) {
-                            Image(systemName: "play.fill")
-                            Text("Run")
+                        .disabled(tabManager.currentTab?.query.isEmpty ?? true)
+
+                        Button(action: {
+                            if let tab = tabManager.currentTab {
+                                executeQuery(for: tab)
+                            }
+                        }) {
+                            HStack(spacing: 6) {
+                                Image(systemName: "play.fill")
+                                Text("Run")
+                            }
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.black)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 8)
+                            .background(
+                                Capsule()
+                                    .fill(.white)
+                            )
                         }
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(.black)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 8)
-                        .background(
-                            Capsule()
-                                .fill(.white)
-                        )
+                        .disabled(tabManager.currentTab?.query.isEmpty ?? true || tabManager.currentTab?.isExecuting ?? false)
                     }
-                    .disabled(tabManager.currentTab?.query.isEmpty ?? true || tabManager.currentTab?.isExecuting ?? false)
                 }
             }
             .sheet(isPresented: $showingSaveDialog) {
@@ -123,6 +135,11 @@ struct SQLEditorView: View {
                 }
             }
         }
+    }
+
+    private func formatQuery(for tab: QueryTab) {
+        let formatted = SQLFormatter.format(tab.query)
+        tab.query = formatted
     }
 }
 
@@ -235,11 +252,10 @@ struct TabButton: View {
 struct TabContentView: View {
     @ObservedObject var tab: QueryTab
     @ObservedObject var databaseService: DatabaseService
-    @FocusState private var isEditorFocused: Bool
 
     var body: some View {
         VStack(spacing: 0) {
-            SQLEditorTextView(
+            SQLTextEditor(
                 text: Binding(
                     get: { tab.query },
                     set: { newValue in
@@ -247,7 +263,10 @@ struct TabContentView: View {
                         tab.updateName(from: newValue)
                     }
                 ),
-                isEditorFocused: $isEditorFocused
+                placeholder: "Write your SQL query here...\n\nExample:\nSELECT * FROM users WHERE created_at > '2024-01-01';",
+                onFormat: {
+                    tab.query = SQLFormatter.format(tab.query)
+                }
             )
             .frame(height: tab.result != nil ? 250 : nil)
 
@@ -259,33 +278,6 @@ struct TabContentView: View {
                     .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
-    }
-}
-
-struct SQLEditorTextView: View {
-    @Binding var text: String
-    var isEditorFocused: FocusState<Bool>.Binding
-
-    var body: some View {
-        ZStack(alignment: .topLeading) {
-            TextEditor(text: $text)
-                .font(.system(size: 16, design: .monospaced))
-                .foregroundColor(.white)
-                .scrollContentBackground(.hidden)
-                .background(Color.clear)
-                .padding()
-                .focused(isEditorFocused)
-
-            if text.isEmpty {
-                Text("Write your SQL query here...\n\nExample:\nSELECT * FROM users\nWHERE created_at > '2024-01-01';")
-                    .font(.system(size: 16, design: .monospaced))
-                    .foregroundColor(.white.opacity(0.3))
-                    .padding()
-                    .padding(.top, 8)
-                    .allowsHitTesting(false)
-            }
-        }
-        .background(Color.white.opacity(0.05))
     }
 }
 

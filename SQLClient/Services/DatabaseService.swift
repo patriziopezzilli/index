@@ -9,6 +9,7 @@ class DatabaseService: ObservableObject {
     @Published var currentSchema: DatabaseSchema?
 
     private var cancellables = Set<AnyCancellable>()
+    private var currentDriver: DatabaseDriver?
 
     init() {
         loadHistory()
@@ -16,68 +17,67 @@ class DatabaseService: ObservableObject {
     }
 
     func connect(to connection: DatabaseConnection) async throws {
-        try await Task.sleep(nanoseconds: 1_000_000_000)
+        // Create appropriate driver
+        let driver = DatabaseDriverFactory.createDriver(for: connection)
 
+        // Connect
+        try await driver.connect()
+
+        // Update state
         await MainActor.run {
+            self.currentDriver = driver
             self.currentConnection = connection
             self.isConnected = true
+            self.currentSchema = nil // Reset schema on new connection
         }
     }
 
     func disconnect() {
+        try? currentDriver?.disconnect()
+        currentDriver = nil
         currentConnection = nil
         isConnected = false
+        currentSchema = nil
     }
 
     func executeQuery(_ query: String) async -> QueryResult {
-        let startTime = Date()
-
-        try? await Task.sleep(nanoseconds: 500_000_000)
-
-        let executionTime = Date().timeIntervalSince(startTime)
-
-        let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-
-        if trimmedQuery.hasPrefix("select") {
-            let columns = ["id", "name", "email", "created_at"]
-            let rows = [
-                ["1", "John Doe", "john@example.com", "2024-01-15"],
-                ["2", "Jane Smith", "jane@example.com", "2024-01-16"],
-                ["3", "Bob Johnson", "bob@example.com", "2024-01-17"]
-            ]
-
-            await addToHistory(query: query, executionTime: executionTime, success: true)
-
+        guard let driver = currentDriver else {
+            await addToHistory(query: query, executionTime: 0, success: false)
             return QueryResult(
-                columns: columns,
-                rows: rows,
+                columns: [],
+                rows: [],
                 rowsAffected: nil,
-                executionTime: executionTime
+                executionTime: 0,
+                error: "Not connected to database"
             )
-        } else if trimmedQuery.hasPrefix("insert") || trimmedQuery.hasPrefix("update") || trimmedQuery.hasPrefix("delete") {
-            await addToHistory(query: query, executionTime: executionTime, success: true)
+        }
 
+        do {
+            let result = try await driver.execute(query)
+            await addToHistory(query: query, executionTime: result.executionTime, success: true)
+            return result
+        } catch {
+            await addToHistory(query: query, executionTime: 0, success: false)
             return QueryResult(
                 columns: [],
                 rows: [],
-                rowsAffected: Int.random(in: 1...10),
-                executionTime: executionTime
-            )
-        } else {
-            await addToHistory(query: query, executionTime: executionTime, success: true)
-
-            return QueryResult(
-                columns: [],
-                rows: [],
-                rowsAffected: 0,
-                executionTime: executionTime
+                rowsAffected: nil,
+                executionTime: 0,
+                error: error.localizedDescription
             )
         }
     }
 
     func testConnection(_ connection: DatabaseConnection) async -> Bool {
-        try? await Task.sleep(nanoseconds: 500_000_000)
-        return true
+        let driver = DatabaseDriverFactory.createDriver(for: connection)
+
+        do {
+            try await driver.connect()
+            try driver.disconnect()
+            return true
+        } catch {
+            return false
+        }
     }
 
     private func addToHistory(query: String, executionTime: TimeInterval, success: Bool) async {
@@ -107,52 +107,15 @@ class DatabaseService: ObservableObject {
     // MARK: - Schema Browser
 
     func loadSchema() async {
-        guard isConnected else { return }
+        guard isConnected, let driver = currentDriver else { return }
 
-        try? await Task.sleep(nanoseconds: 1_000_000_000)
-
-        // Mock schema data
-        let mockSchema = DatabaseSchema(
-            name: currentConnection?.database ?? "Database",
-            tables: [
-                TableSchema(
-                    name: "users",
-                    columns: [
-                        ColumnSchema(name: "id", type: "INTEGER", nullable: false, isPrimaryKey: true, defaultValue: nil),
-                        ColumnSchema(name: "name", type: "VARCHAR(255)", nullable: false, isPrimaryKey: false, defaultValue: nil),
-                        ColumnSchema(name: "email", type: "VARCHAR(255)", nullable: false, isPrimaryKey: false, defaultValue: nil),
-                        ColumnSchema(name: "created_at", type: "TIMESTAMP", nullable: false, isPrimaryKey: false, defaultValue: "CURRENT_TIMESTAMP")
-                    ],
-                    rowCount: 1542
-                ),
-                TableSchema(
-                    name: "orders",
-                    columns: [
-                        ColumnSchema(name: "id", type: "INTEGER", nullable: false, isPrimaryKey: true, defaultValue: nil),
-                        ColumnSchema(name: "user_id", type: "INTEGER", nullable: false, isPrimaryKey: false, defaultValue: nil),
-                        ColumnSchema(name: "total", type: "DECIMAL(10,2)", nullable: false, isPrimaryKey: false, defaultValue: nil),
-                        ColumnSchema(name: "status", type: "VARCHAR(50)", nullable: false, isPrimaryKey: false, defaultValue: "'pending'"),
-                        ColumnSchema(name: "created_at", type: "TIMESTAMP", nullable: false, isPrimaryKey: false, defaultValue: "CURRENT_TIMESTAMP")
-                    ],
-                    rowCount: 8934
-                ),
-                TableSchema(
-                    name: "products",
-                    columns: [
-                        ColumnSchema(name: "id", type: "INTEGER", nullable: false, isPrimaryKey: true, defaultValue: nil),
-                        ColumnSchema(name: "name", type: "VARCHAR(255)", nullable: false, isPrimaryKey: false, defaultValue: nil),
-                        ColumnSchema(name: "description", type: "TEXT", nullable: true, isPrimaryKey: false, defaultValue: nil),
-                        ColumnSchema(name: "price", type: "DECIMAL(10,2)", nullable: false, isPrimaryKey: false, defaultValue: nil),
-                        ColumnSchema(name: "stock", type: "INTEGER", nullable: false, isPrimaryKey: false, defaultValue: "0"),
-                        ColumnSchema(name: "is_active", type: "BOOLEAN", nullable: false, isPrimaryKey: false, defaultValue: "true")
-                    ],
-                    rowCount: 256
-                )
-            ]
-        )
-
-        await MainActor.run {
-            self.currentSchema = mockSchema
+        do {
+            let schema = try await driver.loadSchema()
+            await MainActor.run {
+                self.currentSchema = schema
+            }
+        } catch {
+            print("Failed to load schema: \(error)")
         }
     }
 
