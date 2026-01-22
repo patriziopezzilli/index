@@ -118,6 +118,8 @@ struct TableResultView: View {
     let columns: [String]
     let rows: [[String]]
     let executionTime: TimeInterval
+    @State private var showingExportOptions = false
+    @State private var exportURL: URL?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -128,9 +130,25 @@ struct TableResultView: View {
 
                 Spacer()
 
+                Button(action: { showingExportOptions = true }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "square.and.arrow.up")
+                        Text("Export")
+                    }
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundColor(.blue)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(
+                        Capsule()
+                            .fill(Color.blue.opacity(0.2))
+                    )
+                }
+
                 Text("Execution time: \(String(format: "%.2f", executionTime))s")
                     .font(.system(size: 14))
                     .foregroundColor(.white.opacity(0.5))
+                    .padding(.leading, 12)
             }
             .padding()
             .background(Color.white.opacity(0.05))
@@ -163,5 +181,85 @@ struct TableResultView: View {
                 }
             }
         }
+        .confirmationDialog("Export Results", isPresented: $showingExportOptions) {
+            Button("Export as CSV") {
+                exportAsCSV()
+            }
+
+            Button("Export as JSON") {
+                exportAsJSON()
+            }
+
+            Button("Cancel", role: .cancel) {}
+        }
+        .sheet(item: Binding(
+            get: { exportURL.map { ExportItem(url: $0) } },
+            set: { exportURL = $0?.url }
+        )) { item in
+            ShareSheet(items: [item.url])
+        }
     }
+
+    private func exportAsCSV() {
+        var csvString = columns.joined(separator: ",") + "\n"
+
+        for row in rows {
+            let escapedRow = row.map { value in
+                if value.contains(",") || value.contains("\"") || value.contains("\n") {
+                    return "\"\(value.replacingOccurrences(of: "\"", with: "\"\""))\""
+                }
+                return value
+            }
+            csvString += escapedRow.joined(separator: ",") + "\n"
+        }
+
+        saveToFile(content: csvString, filename: "export.csv")
+    }
+
+    private func exportAsJSON() {
+        var jsonArray: [[String: String]] = []
+
+        for row in rows {
+            var jsonObject: [String: String] = [:]
+            for (index, column) in columns.enumerated() {
+                if index < row.count {
+                    jsonObject[column] = row[index]
+                }
+            }
+            jsonArray.append(jsonObject)
+        }
+
+        if let jsonData = try? JSONSerialization.data(withJSONObject: jsonArray, options: .prettyPrinted),
+           let jsonString = String(data: jsonData, encoding: .utf8) {
+            saveToFile(content: jsonString, filename: "export.json")
+        }
+    }
+
+    private func saveToFile(content: String, filename: String) {
+        let tempDir = FileManager.default.temporaryDirectory
+        let fileURL = tempDir.appendingPathComponent(filename)
+
+        do {
+            try content.write(to: fileURL, atomically: true, encoding: .utf8)
+            exportURL = fileURL
+        } catch {
+            print("Failed to write file: \(error)")
+        }
+    }
+}
+
+struct ExportItem: Identifiable {
+    let id = UUID()
+    let url: URL
+}
+
+struct ShareSheet: UIViewControllerRepresentable {
+    let items: [Any]
+
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        let controller = UIActivityViewController(activityItems: items, applicationActivities: nil)
+        return controller
+    }
+
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }

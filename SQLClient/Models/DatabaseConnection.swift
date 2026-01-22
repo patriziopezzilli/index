@@ -43,9 +43,10 @@ struct DatabaseConnection: Identifiable, Codable, Hashable {
     var database: String
     var username: String
     var password: String
+    var sshConfig: SSHConfig
     var createdAt: Date
 
-    init(name: String, type: DatabaseType, host: String = "localhost", port: Int? = nil, database: String = "", username: String = "", password: String = "") {
+    init(name: String, type: DatabaseType, host: String = "localhost", port: Int? = nil, database: String = "", username: String = "", password: String = "", sshConfig: SSHConfig = SSHConfig()) {
         self.name = name
         self.type = type
         self.host = host
@@ -53,6 +54,7 @@ struct DatabaseConnection: Identifiable, Codable, Hashable {
         self.database = database
         self.username = username
         self.password = password
+        self.sshConfig = sshConfig
         self.createdAt = Date()
     }
 
@@ -60,6 +62,10 @@ struct DatabaseConnection: Identifiable, Codable, Hashable {
         if type == .sqlite {
             return database.isEmpty ? "Local Database" : database
         }
-        return "\(username)@\(host):\(port)"
+        var info = "\(username)@\(host):\(port)"
+        if sshConfig.enabled {
+            info += " (SSH)"
+        }
+        return info
     }
 }

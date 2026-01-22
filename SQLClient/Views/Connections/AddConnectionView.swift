@@ -12,6 +12,7 @@ struct AddConnectionView: View {
     @State private var database = ""
     @State private var username = ""
     @State private var password = ""
+    @State private var sshConfig = SSHConfig()
     @State private var isTestingConnection = false
     @State private var testResult: TestResult?
 
@@ -110,6 +111,8 @@ struct AddConnectionView: View {
                                 SecureField("password", text: $password)
                                     .textFieldStyle(CustomTextFieldStyle())
                             }
+
+                            SSHConfigSection(sshConfig: $sshConfig)
                         }
 
                         if let result = testResult {
@@ -199,7 +202,8 @@ struct AddConnectionView: View {
             port: Int(port),
             database: database,
             username: username,
-            password: password
+            password: password,
+            sshConfig: sshConfig
         )
 
         Task {
@@ -222,7 +226,8 @@ struct AddConnectionView: View {
             port: Int(port) ?? selectedType.defaultPort,
             database: database,
             username: username,
-            password: password
+            password: password,
+            sshConfig: sshConfig
         )
 
         withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
@@ -282,5 +287,121 @@ struct CustomTextFieldStyle: TextFieldStyle {
                 RoundedRectangle(cornerRadius: 12)
                     .fill(Color.white.opacity(0.1))
             )
+    }
+}
+
+struct SSHConfigSection: View {
+    @Binding var sshConfig: SSHConfig
+    @State private var isExpanded = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Button(action: {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                    isExpanded.toggle()
+                }
+            }) {
+                HStack {
+                    Image(systemName: "lock.shield")
+                        .foregroundColor(.purple)
+
+                    Text("SSH Tunnel")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.white)
+
+                    Spacer()
+
+                    Toggle("", isOn: $sshConfig.enabled)
+                        .labelsHidden()
+                        .tint(.purple)
+
+                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(.white.opacity(0.5))
+                }
+                .padding()
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color.purple.opacity(0.1))
+                )
+            }
+
+            if isExpanded && sshConfig.enabled {
+                VStack(spacing: 16) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("SSH Host")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.white.opacity(0.7))
+
+                        TextField("ssh.example.com", text: $sshConfig.host)
+                            .textFieldStyle(CustomTextFieldStyle())
+                            .autocapitalization(.none)
+                    }
+
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("SSH Port")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.white.opacity(0.7))
+
+                        TextField("22", value: $sshConfig.port, format: .number)
+                            .textFieldStyle(CustomTextFieldStyle())
+                            .keyboardType(.numberPad)
+                    }
+
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("SSH Username")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.white.opacity(0.7))
+
+                        TextField("username", text: $sshConfig.username)
+                            .textFieldStyle(CustomTextFieldStyle())
+                            .autocapitalization(.none)
+                    }
+
+                    Toggle(isOn: $sshConfig.useKeyAuthentication) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Use Key Authentication")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(.white)
+
+                            Text("Use private key instead of password")
+                                .font(.system(size: 12))
+                                .foregroundColor(.white.opacity(0.5))
+                        }
+                    }
+                    .tint(.purple)
+
+                    if sshConfig.useKeyAuthentication {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Private Key Path")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(.white.opacity(0.7))
+
+                            TextField("~/.ssh/id_rsa", text: Binding(
+                                get: { sshConfig.privateKeyPath ?? "" },
+                                set: { sshConfig.privateKeyPath = $0.isEmpty ? nil : $0 }
+                            ))
+                            .textFieldStyle(CustomTextFieldStyle())
+                            .autocapitalization(.none)
+                        }
+                    } else {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("SSH Password")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(.white.opacity(0.7))
+
+                            SecureField("password", text: $sshConfig.password)
+                                .textFieldStyle(CustomTextFieldStyle())
+                        }
+                    }
+                }
+                .padding()
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color.white.opacity(0.05))
+                )
+                .transition(.opacity.combined(with: .move(edge: .top)))
+            }
+        }
     }
 }
