@@ -215,15 +215,3 @@ struct ERTableBox: View {
         .shadow(color: tableColor.opacity(0.1), radius: 8, x: 0, y: 4)
     }
 }
-
-struct ShareSheet: UIViewControllerRepresentable {
-    let items: [Any]
-
-    func makeUIViewController(context: Context) -> UIActivityViewController {
-        let controller = UIActivityViewController(activityItems: items, applicationActivities: nil)
-        return controller
-    }
-
-    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {
-    }
-}

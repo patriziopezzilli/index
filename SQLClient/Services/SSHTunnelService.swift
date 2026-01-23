@@ -1,8 +1,12 @@
 import Foundation
 
+#if canImport(Darwin)
+import Darwin
+#endif
+
 /// Service for managing SSH tunnels with port forwarding
 /// Enables secure connections to remote databases through SSH
-/// Uses native ssh command for reliable port forwarding
+/// Note: Full SSH tunneling requires macOS. On iOS, use direct connections or VPN.
 class SSHTunnelService {
 
     // MARK: - Properties
@@ -11,7 +15,9 @@ class SSHTunnelService {
     private let remoteHost: String
     private let remotePort: Int
 
+    #if os(macOS)
     private var sshProcess: Process?
+    #endif
     private(set) var localPort: Int = 0
     private(set) var isConnected = false
 
@@ -35,6 +41,31 @@ class SSHTunnelService {
             throw SSHTunnelError.invalidConfiguration
         }
 
+        #if os(macOS)
+        return try await connectMacOS()
+        #else
+        // On iOS, SSH tunneling via Process is not available
+        // User should use direct connection or VPN
+        throw SSHTunnelError.platformNotSupported
+        #endif
+    }
+
+    /// Disconnects SSH tunnel
+    func disconnect() {
+        guard isConnected else { return }
+
+        #if os(macOS)
+        disconnectMacOS()
+        #endif
+
+        isConnected = false
+        localPort = 0
+    }
+
+    // MARK: - macOS Implementation
+
+    #if os(macOS)
+    private func connectMacOS() async throws -> Int {
         // Find available local port
         localPort = try findAvailablePort()
 
@@ -69,7 +100,6 @@ class SSHTunnelService {
             if sshConfig.useKeyAuthentication, let keyPath = sshConfig.privateKeyPath {
                 arguments.insert(contentsOf: ["-i", keyPath], at: 0)
             } else if let passwordFile = passwordFileURL {
-                // Use sshpass if available, otherwise use expect
                 arguments.insert(contentsOf: [
                     "-o", "PreferredAuthentications=password",
                     "-o", "PubkeyAuthentication=no"
@@ -128,17 +158,12 @@ class SSHTunnelService {
         }
     }
 
-    /// Disconnects SSH tunnel
-    func disconnect() {
-        guard isConnected else { return }
-
+    private func disconnectMacOS() {
         sshProcess?.terminate()
         sshProcess?.waitUntilExit()
         sshProcess = nil
-
-        isConnected = false
-        localPort = 0
     }
+    #endif
 
     // MARK: - Private Helpers
 
@@ -201,6 +226,7 @@ enum SSHTunnelError: LocalizedError {
     case connectionFailed(String)
     case noAvailablePort
     case tunnelNotEstablished
+    case platformNotSupported
 
     var errorDescription: String? {
         switch self {
@@ -212,6 +238,8 @@ enum SSHTunnelError: LocalizedError {
             return "Could not find available local port"
         case .tunnelNotEstablished:
             return "SSH tunnel not established"
+        case .platformNotSupported:
+            return "SSH tunneling via Process is only available on macOS. On iOS, use direct connection or VPN."
         }
     }
 }

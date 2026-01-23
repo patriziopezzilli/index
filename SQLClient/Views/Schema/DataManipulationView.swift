@@ -59,7 +59,7 @@ struct CreateTableView: View {
                         }
 
                         ForEach(Array(columns.enumerated()), id: \.element.id) { index, column in
-                            ColumnDefinitionRow(
+                            DataManipulationColumnRow(
                                 column: $columns[index],
                                 canDelete: columns.count > 1,
                                 onDelete: { removeColumn(at: index) }
@@ -118,12 +118,14 @@ struct CreateTableView: View {
 
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: createTable) {
-                        if isCreating {
-                            ProgressView()
-                                .tint(.white)
-                        } else {
-                            Text("Create")
-                                .fontWeight(.semibold)
+                        Group {
+                            if isCreating {
+                                ProgressView()
+                                    .tint(.white)
+                            } else {
+                                Text("Create")
+                                    .fontWeight(.semibold)
+                            }
                         }
                     }
                     .disabled(!isFormValid || isCreating)
@@ -228,7 +230,7 @@ struct NewColumnDefinition: Identifiable {
     var defaultValue: String = ""
 }
 
-struct ColumnDefinitionRow: View {
+struct DataManipulationColumnRow: View {
     @Binding var column: NewColumnDefinition
     let canDelete: Bool
     let onDelete: () -> Void
