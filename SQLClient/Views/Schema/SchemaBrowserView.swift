@@ -66,7 +66,7 @@ struct SchemaBrowserView: View {
                 }
             }
             .sheet(item: $tableToInsert) { table in
-                InsertRowView(table: table)
+                SchemaInsertRowView(table: table)
                     .environmentObject(databaseService)
             }
             .sheet(isPresented: $showERDiagram) {

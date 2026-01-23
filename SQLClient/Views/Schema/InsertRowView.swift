@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct InsertRowView: View {
+struct SchemaInsertRowView: View {
     @EnvironmentObject var databaseService: DatabaseService
     @Environment(\.dismiss) var dismiss
 
@@ -144,7 +144,7 @@ struct InsertRowView: View {
             await MainActor.run {
                 isInserting = false
 
-                if result.success {
+                if result.isSuccess {
                     showSuccess = true
                 } else {
                     errorMessage = result.error ?? "Failed to insert row"
