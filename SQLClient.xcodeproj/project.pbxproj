@@ -11,6 +11,7 @@
 		786645FC2F228F4F003EAEF0 /* _ConnectionPoolModule in Frameworks */ = {isa = PBXBuildFile; productRef = 786645FB2F228F4F003EAEF0 /* _ConnectionPoolModule */; };
 		786645FE2F228F4F003EAEF0 /* _ConnectionPoolTestUtils in Frameworks */ = {isa = PBXBuildFile; productRef = 786645FD2F228F4F003EAEF0 /* _ConnectionPoolTestUtils */; };
 		786646012F228F6F003EAEF0 /* MySQLNIO in Frameworks */ = {isa = PBXBuildFile; productRef = 786646002F228F6F003EAEF0 /* MySQLNIO */; };
+		786646242F2349AA003EAEF0 /* NIOSSH in Frameworks */ = {isa = PBXBuildFile; productRef = 786646252F2349AA003EAEF0 /* NIOSSH */; };
 		7866460E2F229455003EAEF0 /* MySQLDriver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7866460C2F229455003EAEF0 /* MySQLDriver.swift */; };
 		7866460F2F229455003EAEF0 /* PostgresDriver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7866460D2F229455003EAEF0 /* PostgresDriver.swift */; };
 		786646122F229685003EAEF0 /* DatabaseWorkspaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 786646102F229685003EAEF0 /* DatabaseWorkspaceView.swift */; };
@@ -53,6 +54,7 @@
 		A1000030 /* QueryHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000031 /* QueryHistoryView.swift */; };
 		A1000031 /* CreateTableWizardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000032 /* CreateTableWizardView.swift */; };
 		A1000032 /* ERDiagramView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000033 /* ERDiagramView.swift */; };
+		A1000033 /* SSHTunnelService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000034 /* SSHTunnelService.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -100,6 +102,7 @@
 		B1000031 /* QueryHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueryHistoryView.swift; sourceTree = "<group>"; };
 		B1000032 /* CreateTableWizardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateTableWizardView.swift; sourceTree = "<group>"; };
 		B1000033 /* ERDiagramView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ERDiagramView.swift; sourceTree = "<group>"; };
+		B1000034 /* SSHTunnelService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSHTunnelService.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -111,6 +114,7 @@
 				786645FE2F228F4F003EAEF0 /* _ConnectionPoolTestUtils in Frameworks */,
 				786645FC2F228F4F003EAEF0 /* _ConnectionPoolModule in Frameworks */,
 				786645FA2F228F4F003EAEF0 /* PostgresNIO in Frameworks */,
+				786646242F2349AA003EAEF0 /* NIOSSH in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -190,6 +194,7 @@
 				B1000021 /* DatabaseDriver.swift */,
 				B1000022 /* SQLiteDriver.swift */,
 				B1000028 /* KeychainService.swift */,
+				B1000034 /* SSHTunnelService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -334,6 +339,7 @@
 			packageReferences = (
 				786645F82F228F4F003EAEF0 /* XCRemoteSwiftPackageReference "postgres-nio" */,
 				786645FF2F228F6F003EAEF0 /* XCRemoteSwiftPackageReference "mysql-nio" */,
+				786646262F2349AA003EAEF0 /* XCRemoteSwiftPackageReference "swift-nio-ssh" */,
 			);
 			productRefGroup = D1000003 /* Products */;
 			projectDirPath = "";
@@ -401,6 +407,7 @@
 				A1000030 /* QueryHistoryView.swift in Sources */,
 				A1000031 /* CreateTableWizardView.swift in Sources */,
 				A1000032 /* ERDiagramView.swift in Sources */,
+				A1000033 /* SSHTunnelService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -632,6 +639,14 @@
 				minimumVersion = 1.9.0;
 			};
 		};
+		786646262F2349AA003EAEF0 /* XCRemoteSwiftPackageReference "swift-nio-ssh" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-nio-ssh.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.10.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -654,6 +669,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 786645FF2F228F6F003EAEF0 /* XCRemoteSwiftPackageReference "mysql-nio" */;
 			productName = MySQLNIO;
+		};
+		786646252F2349AA003EAEF0 /* NIOSSH */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 786646262F2349AA003EAEF0 /* XCRemoteSwiftPackageReference "swift-nio-ssh" */;
+			productName = NIOSSH;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

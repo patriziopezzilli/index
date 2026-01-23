@@ -11,6 +11,7 @@ class MySQLDriver: DatabaseDriver {
     private var mysqlConnection: MySQLConnection?
     private let eventLoopGroup: EventLoopGroup
     private let logger: Logger
+    private var sshTunnel: SSHTunnelService?
 
     init(connection: DatabaseConnection) {
         self.connection = connection
@@ -18,6 +19,15 @@ class MySQLDriver: DatabaseDriver {
         var logger = Logger(label: "mysql-driver")
         logger.logLevel = .warning
         self.logger = logger
+
+        // Initialize SSH tunnel if needed
+        if connection.sshConfig.enabled {
+            self.sshTunnel = SSHTunnelService(
+                sshConfig: connection.sshConfig,
+                remoteHost: connection.host,
+                remotePort: connection.port
+            )
+        }
     }
 
     deinit {
@@ -28,8 +38,22 @@ class MySQLDriver: DatabaseDriver {
     // MARK: - Connection Management
 
     func connect() async throws {
+        // Establish SSH tunnel if needed
+        var actualHost = connection.host
+        var actualPort = connection.port
+
+        if let tunnel = sshTunnel {
+            do {
+                let localPort = try await tunnel.connect()
+                actualHost = "127.0.0.1"
+                actualPort = localPort
+            } catch {
+                throw DatabaseDriverError.connectionFailed("SSH tunnel failed: \(error.localizedDescription)")
+            }
+        }
+
         do {
-            let address = try SocketAddress(ipAddress: connection.host, port: connection.port)
+            let address = try SocketAddress(ipAddress: actualHost, port: actualPort)
             mysqlConnection = try await MySQLConnection.connect(
                 to: address,
                 username: connection.username,
@@ -41,6 +65,8 @@ class MySQLDriver: DatabaseDriver {
             ).get()
             isConnected = true
         } catch {
+            // Clean up tunnel if connection fails
+            sshTunnel?.disconnect()
             throw DatabaseDriverError.connectionFailed(error.localizedDescription)
         }
     }
@@ -54,6 +80,9 @@ class MySQLDriver: DatabaseDriver {
 
         mysqlConnection = nil
         isConnected = false
+
+        // Disconnect SSH tunnel
+        sshTunnel?.disconnect()
     }
 
     // MARK: - Query Execution
