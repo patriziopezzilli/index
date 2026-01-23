@@ -55,6 +55,7 @@
 		A1000031 /* CreateTableWizardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000032 /* CreateTableWizardView.swift */; };
 		A1000032 /* ERDiagramView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000033 /* ERDiagramView.swift */; };
 		A1000033 /* SSHTunnelService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000034 /* SSHTunnelService.swift */; };
+		A1000034 /* InsertRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000035 /* InsertRowView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -103,6 +104,7 @@
 		B1000032 /* CreateTableWizardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateTableWizardView.swift; sourceTree = "<group>"; };
 		B1000033 /* ERDiagramView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ERDiagramView.swift; sourceTree = "<group>"; };
 		B1000034 /* SSHTunnelService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSHTunnelService.swift; sourceTree = "<group>"; };
+		B1000035 /* InsertRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsertRowView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -278,6 +280,7 @@
 				B1000020 /* SchemaBrowserView.swift */,
 				B1000032 /* CreateTableWizardView.swift */,
 				B1000033 /* ERDiagramView.swift */,
+				B1000035 /* InsertRowView.swift */,
 			);
 			path = Schema;
 			sourceTree = "<group>";
@@ -408,6 +411,7 @@
 				A1000031 /* CreateTableWizardView.swift in Sources */,
 				A1000032 /* ERDiagramView.swift in Sources */,
 				A1000033 /* SSHTunnelService.swift in Sources */,
+				A1000034 /* InsertRowView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

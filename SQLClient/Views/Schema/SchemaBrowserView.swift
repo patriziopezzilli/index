@@ -211,26 +211,98 @@ struct SchemaContentView: View {
             BrowserSearchBar(text: $searchText)
                 .padding()
 
-            ScrollView {
-                LazyVStack(spacing: 12) {
-                    ForEach(tables) { table in
-                        BrowserTableRow(
-                            table: table,
-                            onTap: { selectedTable = table },
-                            onInsert: { onTableTap(table) },
-                            onDropTable: onDropTable,
-                            onTruncateTable: onTruncateTable,
-                            onInsertRow: onInsertRow
-                        )
+            if tables.isEmpty && searchText.isEmpty {
+                // Empty state with prominent create button
+                VStack(spacing: 32) {
+                    Spacer()
+
+                    Image(systemName: "tablecells.badge.ellipsis")
+                        .font(.system(size: 80, weight: .thin))
+                        .foregroundColor(.gray.opacity(0.4))
+
+                    VStack(spacing: 12) {
+                        Text("No Tables Yet")
+                            .font(.title2)
+                            .fontWeight(.bold)
+
+                        Text("Create your first table to get started")
+                            .font(.body)
+                            .foregroundColor(.secondary)
+                    }
+
+                    if let createAction = onCreateTable {
+                        Button(action: createAction) {
+                            HStack(spacing: 12) {
+                                Image(systemName: "plus.circle.fill")
+                                    .font(.title3)
+                                Text("Create Table")
+                                    .font(.system(size: 18, weight: .semibold))
+                            }
+                            .foregroundColor(.white)
+                            .frame(width: 220, height: 56)
+                            .background(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .fill(
+                                        LinearGradient(
+                                            colors: [.blue, .blue.opacity(0.8)],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
+                                    )
+                            )
+                            .shadow(color: .blue.opacity(0.3), radius: 12, x: 0, y: 6)
+                        }
+                    }
+
+                    Spacer()
+                }
+            } else {
+                ZStack(alignment: .bottomTrailing) {
+                    ScrollView {
+                        LazyVStack(spacing: 12) {
+                            ForEach(tables) { table in
+                                BrowserTableRow(
+                                    table: table,
+                                    onTap: { selectedTable = table },
+                                    onInsert: { onTableTap(table) },
+                                    onDropTable: onDropTable,
+                                    onTruncateTable: onTruncateTable,
+                                    onInsertRow: onInsertRow
+                                )
+                            }
+                        }
+                        .padding()
+                        .padding(.bottom, 80) // Space for FAB
+                    }
+                    .refreshable {
+                        isRefreshing = true
+                        onRefresh()
+                        try? await Task.sleep(nanoseconds: 500_000_000)
+                        isRefreshing = false
+                    }
+
+                    // Floating Action Button for Create Table
+                    if let createAction = onCreateTable {
+                        Button(action: createAction) {
+                            HStack(spacing: 8) {
+                                Image(systemName: "plus")
+                                    .font(.system(size: 18, weight: .semibold))
+                                Text("New Table")
+                                    .font(.system(size: 16, weight: .semibold))
+                            }
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 24)
+                            .padding(.vertical, 16)
+                            .background(
+                                Capsule()
+                                    .fill(Color.blue)
+                            )
+                            .shadow(color: .black.opacity(0.2), radius: 8, x: 0, y: 4)
+                        }
+                        .padding(.trailing, 20)
+                        .padding(.bottom, 20)
                     }
                 }
-                .padding()
-            }
-            .refreshable {
-                isRefreshing = true
-                onRefresh()
-                try? await Task.sleep(nanoseconds: 500_000_000)
-                isRefreshing = false
             }
         }
         .toolbar {
@@ -323,6 +395,19 @@ struct BrowserTableRow: View {
 
                 Spacer()
 
+                // Structure button - always visible
+                Button(action: onTap) {
+                    Image(systemName: "list.bullet.rectangle")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(.purple)
+                        .frame(width: 32, height: 32)
+                        .background(
+                            Circle()
+                                .fill(Color.purple.opacity(0.15))
+                        )
+                }
+                .buttonStyle(PlainButtonStyle())
+
                 Button(action: onInsert) {
                     Image(systemName: "arrow.down.left")
                         .font(.system(size: 14, weight: .medium))
@@ -344,7 +429,7 @@ struct BrowserTableRow: View {
         .buttonStyle(PlainButtonStyle())
         .contextMenu {
             Button(action: onTap) {
-                Label("View Details", systemImage: "info.circle")
+                Label("View Structure", systemImage: "list.bullet.rectangle")
             }
 
             Button(action: onInsert) {
