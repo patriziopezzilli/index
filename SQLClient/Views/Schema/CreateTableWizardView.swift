@@ -83,14 +83,14 @@ struct CreateTableWizardView: View {
         Task {
             let result = await databaseService.executeQuery(sql)
 
-            if result.success {
+            if result.isSuccess {
                 await databaseService.loadSchema()
             }
 
             await MainActor.run {
                 isCreating = false
 
-                if result.success {
+                if result.isSuccess {
                     dismiss()
                 } else {
                     errorMessage = result.error ?? "Failed to create table"
