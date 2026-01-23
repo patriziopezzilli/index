@@ -130,7 +130,7 @@ struct CreateTableWizardView: View {
     }
 }
 
-struct ColumnDefinition: Identifiable {
+struct ColumnDefinition: Identifiable, Equatable {
     let id = UUID()
     var name: String = ""
     var type: ColumnType = .text
@@ -138,6 +138,15 @@ struct ColumnDefinition: Identifiable {
     var autoIncrement: Bool = false
     var nullable: Bool = true
     var defaultValue: String?
+
+    static func == (lhs: ColumnDefinition, rhs: ColumnDefinition) -> Bool {
+        lhs.name == rhs.name &&
+        lhs.type == rhs.type &&
+        lhs.isPrimaryKey == rhs.isPrimaryKey &&
+        lhs.autoIncrement == rhs.autoIncrement &&
+        lhs.nullable == rhs.nullable &&
+        lhs.defaultValue == rhs.defaultValue
+    }
 }
 
 enum ColumnType: String, CaseIterable {
