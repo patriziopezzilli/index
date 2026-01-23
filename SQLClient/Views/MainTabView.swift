@@ -5,6 +5,10 @@ struct MainTabView: View {
     @State private var selectedTab = 0
     @State private var isSidebarVisible = true
 
+    private func returnToConnections() {
+        selectedTab = 0
+    }
+
     var body: some View {
         TabView(selection: $selectedTab) {
             ConnectionsListView(selectedTab: $selectedTab)
@@ -14,7 +18,7 @@ struct MainTabView: View {
                 .tag(0)
 
             if databaseService.isConnected {
-                WorkspaceTabContainer(isSidebarVisible: $isSidebarVisible)
+                WorkspaceTabContainer(isSidebarVisible: $isSidebarVisible, onReturnToConnections: returnToConnections)
                     .tabItem {
                         Label("Workspace", systemImage: "sparkles")
                     }
@@ -49,6 +53,7 @@ struct MainTabView: View {
 struct WorkspaceTabContainer: View {
     @EnvironmentObject var dbService: DatabaseService
     @Binding var isSidebarVisible: Bool
+    let onReturnToConnections: () -> Void
     
     var body: some View {
         VStack(spacing: 0) {
@@ -70,7 +75,11 @@ struct WorkspaceTabContainer: View {
             }
             
             if let currentWorkspace = dbService.currentWorkspace {
-                DatabaseWorkspaceView(workspace: currentWorkspace, isSidebarVisible: $isSidebarVisible)
+                DatabaseWorkspaceView(
+                    workspace: currentWorkspace, 
+                    isSidebarVisible: $isSidebarVisible,
+                    onReturnToConnections: onReturnToConnections
+                )
             }
         }
     }

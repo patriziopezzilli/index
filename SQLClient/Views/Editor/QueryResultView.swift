@@ -93,7 +93,7 @@ struct AffectedRowsView: View {
 
                     Text("Execution time: \(String(format: "%.2f", executionTime))s")
                         .font(.system(size: 14))
-                        .foregroundColor(.secondary)
+                        .foregroundColor(executionTimeColor(executionTime))
                 }
             }
 
@@ -101,6 +101,12 @@ struct AffectedRowsView: View {
         }
         .frame(maxWidth: .infinity)
         .background(Color(.systemBackground))
+    }
+
+    private func executionTimeColor(_ time: TimeInterval) -> Color {
+        if time < 0.1 { return .green }
+        if time < 1.0 { return .orange }
+        return .red
     }
 }
 
@@ -123,13 +129,19 @@ struct SuccessResultView: View {
 
                 Text("Execution time: \(String(format: "%.2f", executionTime))s")
                     .font(.system(size: 14))
-                    .foregroundColor(.secondary)
+                    .foregroundColor(executionTimeColor(executionTime))
             }
 
             Spacer()
         }
         .frame(maxWidth: .infinity)
         .background(Color(.systemBackground))
+    }
+
+    private func executionTimeColor(_ time: TimeInterval) -> Color {
+        if time < 0.1 { return .green }
+        if time < 1.0 { return .orange }
+        return .red
     }
 }
 
@@ -159,7 +171,7 @@ struct NoResultsView: View {
 
                     Text("Execution time: \(String(format: "%.2f", executionTime))s")
                         .font(.system(size: 12))
-                        .foregroundColor(.secondary.opacity(0.7))
+                        .foregroundColor(executionTimeColor(executionTime))
                 }
             }
 
@@ -167,6 +179,12 @@ struct NoResultsView: View {
         }
         .frame(maxWidth: .infinity)
         .background(Color(.systemBackground))
+    }
+
+    private func executionTimeColor(_ time: TimeInterval) -> Color {
+        if time < 0.1 { return .green }
+        if time < 1.0 { return .orange }
+        return .red
     }
 }
 struct TableResultView: View {
@@ -187,6 +205,7 @@ struct TableResultView: View {
     @State private var columnWidths: [String: CGFloat] = [:]
     @State private var editingCell: Int? // row index << 16 | col index
     @State private var editingValue: String = ""
+    @State private var showingVisualization = false
     @EnvironmentObject var dbService: DatabaseService
 
     @Namespace private var editNamespace
@@ -222,12 +241,19 @@ struct TableResultView: View {
                     }
                     Text(String(format: "%.3fs", executionTime))
                         .font(.system(size: 10))
-                        .foregroundColor(.secondary.opacity(0.7))
+                        .foregroundColor(executionTimeColor(executionTime))
                 }
 
                 Spacer()
 
                 HStack(spacing: 8) {
+                    Button(action: { showingVisualization = true }) {
+                        Label("Visualize", systemImage: "chart.bar.fill")
+                            .font(.system(size: 11, weight: .medium))
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundColor(.blue)
+
                     Button(action: { showingExportOptions = true }) {
                         Label("Export", systemImage: "square.and.arrow.up")
                             .font(.system(size: 11, weight: .medium))
@@ -288,6 +314,14 @@ struct TableResultView: View {
             set: { exportURL = $0?.url }
         )) { item in
             ShareSheet(items: [item.url])
+        }
+        .sheet(isPresented: $showingVisualization) {
+            DataVisualizationView(result: QueryResult(
+                columns: columns,
+                rows: rows,
+                totalRows: totalRows,
+                executionTime: executionTime
+            ))
         }
     }
 
@@ -522,6 +556,12 @@ struct TableResultView: View {
         } catch {
             print("Failed to write file: \(error)")
         }
+    }
+
+    private func executionTimeColor(_ time: TimeInterval) -> Color {
+        if time < 0.1 { return .green }
+        if time < 1.0 { return .orange }
+        return .red
     }
 }
 

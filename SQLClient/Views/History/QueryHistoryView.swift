@@ -10,6 +10,8 @@ struct QueryHistoryView: View {
 
     enum FilterOption: String, CaseIterable {
         case all = "All"
+        case today = "Today"
+        case week = "Week"
         case successful = "Successful"
         case failed = "Failed"
 
@@ -17,6 +19,10 @@ struct QueryHistoryView: View {
             switch self {
             case .all:
                 return "clock.fill"
+            case .today:
+                return "calendar.day.timeline.left"
+            case .week:
+                return "calendar"
             case .successful:
                 return "checkmark.circle.fill"
             case .failed:
@@ -28,6 +34,10 @@ struct QueryHistoryView: View {
             switch self {
             case .all:
                 return .blue
+            case .today:
+                return .orange
+            case .week:
+                return .purple
             case .successful:
                 return .green
             case .failed:
@@ -54,7 +64,7 @@ struct QueryHistoryView: View {
                     .padding()
 
                     ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 12) {
+                        HStack(spacing: 16) {
                             ForEach(FilterOption.allCases, id: \.self) { option in
                                 FilterButton(
                                     option: option,
@@ -67,9 +77,10 @@ struct QueryHistoryView: View {
                                 }
                             }
                         }
-                        .padding(.horizontal)
+                        .padding(.horizontal, 4)
                     }
-                    .padding(.bottom)
+                    .padding(.horizontal)
+                    .padding(.vertical, 8)
 
                     if filteredHistory.isEmpty {
                         EmptyHistoryView(filterOption: filterOption)
@@ -131,6 +142,12 @@ struct QueryHistoryView: View {
         switch filterOption {
         case .all:
             break
+        case .today:
+            let today = Calendar.current.startOfDay(for: Date())
+            history = history.filter { $0.timestamp >= today }
+        case .week:
+            let weekAgo = Calendar.current.date(byAdding: .day, value: -7, to: Date())!
+            history = history.filter { $0.timestamp >= weekAgo }
         case .successful:
             history = history.filter { $0.success }
         case .failed:
@@ -150,6 +167,12 @@ struct QueryHistoryView: View {
         switch option {
         case .all:
             return dbService.queryHistory.count
+        case .today:
+            let today = Calendar.current.startOfDay(for: Date())
+            return dbService.queryHistory.filter { $0.timestamp >= today }.count
+        case .week:
+            let weekAgo = Calendar.current.date(byAdding: .day, value: -7, to: Date())!
+            return dbService.queryHistory.filter { $0.timestamp >= weekAgo }.count
         case .successful:
             return dbService.queryHistory.filter { $0.success }.count
         case .failed:
@@ -173,30 +196,42 @@ struct FilterButton: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 8) {
-                Image(systemName: option.icon)
-                    .font(.caption)
-
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(option.rawValue)
-                        .font(.system(size: 14, weight: .semibold))
-
-                    Text("\(count)")
-                        .font(.caption2)
+            VStack(spacing: 6) {
+                ZStack {
+                    Circle()
+                        .fill(isSelected ? option.color.opacity(0.2) : Color(.secondarySystemBackground))
+                        .frame(width: 56, height: 56)
+                        .overlay(
+                            Circle()
+                                .stroke(isSelected ? option.color : Color.clear, lineWidth: 2.5)
+                        )
+                        .shadow(color: isSelected ? option.color.opacity(0.3) : Color.clear, radius: 4, y: 2)
+                    
+                    Image(systemName: option.icon)
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundColor(isSelected ? option.color : .secondary)
                 }
+                
+                Text(option.rawValue)
+                    .font(.system(size: 11, weight: isSelected ? .semibold : .medium))
+                    .foregroundColor(isSelected ? option.color : .secondary)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                
+                Text("\(count)")
+                    .font(.system(size: 9, weight: .bold))
+                    .foregroundColor(isSelected ? option.color.opacity(0.8) : .secondary.opacity(0.7))
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .background(
+                        Capsule()
+                            .fill(isSelected ? option.color.opacity(0.15) : Color(.secondarySystemBackground))
+                    )
             }
-            .foregroundColor(isSelected ? option.color : .secondary)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 10)
-            .background(
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(isSelected ? option.color.opacity(0.15) : Color(.secondarySystemBackground))
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 10)
-                    .stroke(isSelected ? option.color : Color.clear, lineWidth: 1)
-            )
+            .frame(width: 70)
         }
+        .buttonStyle(.plain)
     }
 }
 
@@ -298,6 +333,10 @@ struct EmptyHistoryView: View {
         switch filterOption {
         case .all:
             return "Your query history will appear here once you start executing queries"
+        case .today:
+            return "No queries executed today"
+        case .week:
+            return "No queries executed this week"
         case .successful:
             return "No successful queries yet"
         case .failed:

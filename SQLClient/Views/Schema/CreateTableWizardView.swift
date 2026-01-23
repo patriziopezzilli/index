@@ -116,6 +116,10 @@ struct CreateTableWizardView: View {
                 def += " NOT NULL"
             }
 
+            if col.isUnique && !col.isPrimaryKey {
+                def += " UNIQUE"
+            }
+
             if let defaultValue = col.defaultValue, !defaultValue.isEmpty {
                 def += " DEFAULT \(defaultValue)"
             }
@@ -137,6 +141,7 @@ struct ColumnDefinition: Identifiable, Equatable {
     var isPrimaryKey: Bool = false
     var autoIncrement: Bool = false
     var nullable: Bool = true
+    var isUnique: Bool = false
     var defaultValue: String?
 
     static func == (lhs: ColumnDefinition, rhs: ColumnDefinition) -> Bool {
@@ -145,6 +150,7 @@ struct ColumnDefinition: Identifiable, Equatable {
         lhs.isPrimaryKey == rhs.isPrimaryKey &&
         lhs.autoIncrement == rhs.autoIncrement &&
         lhs.nullable == rhs.nullable &&
+        lhs.isUnique == rhs.isUnique &&
         lhs.defaultValue == rhs.defaultValue
     }
 }
@@ -152,14 +158,21 @@ struct ColumnDefinition: Identifiable, Equatable {
 enum ColumnType: String, CaseIterable {
     case integer = "INTEGER"
     case text = "TEXT"
+    case varchar = "VARCHAR(255)"
+    case decimal = "DECIMAL(10,2)"
     case real = "REAL"
+    case boolean = "BOOLEAN"
+    case datetime = "DATETIME"
+    case timestamp = "TIMESTAMP"
     case blob = "BLOB"
 
     var icon: String {
         switch self {
         case .integer: return "number"
-        case .text: return "textformat"
-        case .real: return "number.circle"
+        case .text, .varchar: return "textformat"
+        case .real, .decimal: return "number.circle"
+        case .boolean: return "checkmark.square"
+        case .datetime, .timestamp: return "calendar"
         case .blob: return "doc.fill"
         }
     }
@@ -401,56 +414,64 @@ struct ColumnDefinitionRow: View {
                         .pickerStyle(.segmented)
                     }
 
-                    VStack(spacing: 12) {
-                        Toggle(isOn: $column.isPrimaryKey) {
-                            HStack {
-                                Image(systemName: "key.fill")
-                                    .foregroundColor(.yellow)
-                                Text("Primary Key")
-                            }
-                        }
+                            VStack(spacing: 12) {
+                                Toggle(isOn: $column.isPrimaryKey) {
+                                    HStack {
+                                        Image(systemName: "key.fill")
+                                            .foregroundColor(.yellow)
+                                        Text("Primary Key")
+                                    }
+                                }
 
-                        if column.isPrimaryKey && column.type == .integer {
-                            Toggle(isOn: $column.autoIncrement) {
-                                HStack {
-                                    Image(systemName: "plus.forwardslash.minus")
-                                        .foregroundColor(.blue)
-                                    Text("Auto Increment")
+                                if column.isPrimaryKey && column.type == .integer {
+                                    Toggle(isOn: $column.autoIncrement) {
+                                        HStack {
+                                            Image(systemName: "plus.forwardslash.minus")
+                                                .foregroundColor(.blue)
+                                            Text("Auto Increment")
+                                        }
+                                    }
+                                    .disabled(!column.isPrimaryKey)
+                                }
+
+                                if !column.isPrimaryKey {
+                                    Toggle(isOn: $column.nullable) {
+                                        HStack {
+                                            Image(systemName: "questionmark.circle")
+                                                .foregroundColor(.orange)
+                                            Text("Nullable")
+                                        }
+                                    }
+
+                                    Toggle(isOn: $column.isUnique) {
+                                        HStack {
+                                            Image(systemName: "hand.raised.fill")
+                                                .foregroundColor(.purple)
+                                            Text("Unique")
+                                        }
+                                    }
+
+                                    VStack(alignment: .leading, spacing: 6) {
+                                        HStack {
+                                            Image(systemName: "equal.circle")
+                                                .foregroundColor(.blue)
+                                            Text("Default Value")
+                                        }
+                                        .font(.system(size: 14))
+
+                                        TextField("Optional", text: Binding(
+                                            get: { column.defaultValue ?? "" },
+                                            set: { column.defaultValue = $0.isEmpty ? nil : $0 }
+                                        ))
+                                        .font(.system(size: 14, design: .monospaced))
+                                        .padding(8)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 8)
+                                                .fill(Color(.tertiarySystemBackground))
+                                        )
+                                    }
                                 }
                             }
-                            .disabled(!column.isPrimaryKey)
-                        }
-
-                        if !column.isPrimaryKey {
-                            Toggle(isOn: $column.nullable) {
-                                HStack {
-                                    Image(systemName: "questionmark.circle")
-                                        .foregroundColor(.orange)
-                                    Text("Nullable")
-                                }
-                            }
-
-                            VStack(alignment: .leading, spacing: 6) {
-                                HStack {
-                                    Image(systemName: "equal.circle")
-                                        .foregroundColor(.purple)
-                                    Text("Default Value")
-                                }
-                                .font(.system(size: 14))
-
-                                TextField("Optional", text: Binding(
-                                    get: { column.defaultValue ?? "" },
-                                    set: { column.defaultValue = $0.isEmpty ? nil : $0 }
-                                ))
-                                .font(.system(size: 14, design: .monospaced))
-                                .padding(8)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .fill(Color(.tertiarySystemBackground))
-                                )
-                            }
-                        }
-                    }
                 }
                 .padding(.horizontal)
                 .padding(.bottom)
@@ -485,6 +506,10 @@ struct Step3Review: View {
 
             if !col.nullable && !col.isPrimaryKey {
                 def += " NOT NULL"
+            }
+
+            if col.isUnique && !col.isPrimaryKey {
+                def += " UNIQUE"
             }
 
             if let defaultValue = col.defaultValue, !defaultValue.isEmpty {

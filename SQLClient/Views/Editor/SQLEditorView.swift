@@ -1,4 +1,5 @@
 import SwiftUI
+import FirebaseAnalytics
 
 struct SQLEditorView: View {
     @EnvironmentObject var databaseService: DatabaseService
@@ -124,6 +125,14 @@ struct SQLEditorView: View {
                     tab.isExecuting = false
                     tab.executionTask = nil
                 }
+
+                // Firebase Analytics: track query execution
+                Analytics.logEvent("query_executed", parameters: [
+                    "query_type": result.columns.isEmpty ? "command" : "select",
+                    "row_count": result.rows.count,
+                    "execution_time": result.executionTime,
+                    "has_error": result.error != nil ? "true" : "false"
+                ])
             }
         }
     }
@@ -243,10 +252,35 @@ struct TabButton: View {
 struct TabContentView: View {
     @ObservedObject var tab: QueryTab
     @ObservedObject var databaseService: DatabaseService
+    @State private var showingFindReplace = false
+    @State private var findText = ""
+    @State private var replaceText = ""
 
     var body: some View {
         GeometryReader { geometry in
             VStack(spacing: 0) {
+                // Toolbar
+                HStack(spacing: 12) {
+                    Button(action: { showingFindReplace.toggle() }) {
+                        Image(systemName: "magnifyingglass")
+                            .font(.system(size: 14))
+                            .foregroundColor(.blue)
+                    }
+
+                    Spacer()
+
+                    Button(action: {
+                        tab.query = SQLFormatter.format(tab.query)
+                    }) {
+                        Image(systemName: "text.alignleft")
+                            .font(.system(size: 14))
+                            .foregroundColor(.blue)
+                    }
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(Color(.secondarySystemBackground))
+
                 // Editor on top
                 SQLEditorWithAutocomplete(
                     text: Binding(
@@ -287,6 +321,63 @@ struct TabContentView: View {
                 .frame(height: geometry.size.height * 0.5)
             }
         }
+        .sheet(isPresented: $showingFindReplace) {
+            FindReplaceView(
+                text: $tab.query,
+                findText: $findText,
+                replaceText: $replaceText
+            )
+        }
+    }
+}
+
+struct FindReplaceView: View {
+    @Binding var text: String
+    @Binding var findText: String
+    @Binding var replaceText: String
+    @Environment(\.dismiss) var dismiss
+    @State private var caseSensitive = false
+    @State private var wholeWords = false
+
+    var body: some View {
+        NavigationView {
+            Form {
+                Section(header: Text("Find")) {
+                    TextField("Text to find", text: $findText)
+                }
+
+                Section(header: Text("Replace")) {
+                    TextField("Replace with", text: $replaceText)
+                }
+
+                Section {
+                    Toggle("Case sensitive", isOn: $caseSensitive)
+                    Toggle("Whole words only", isOn: $wholeWords)
+                }
+
+                Section {
+                    Button("Replace All") {
+                        performReplaceAll()
+                        dismiss()
+                    }
+                    .disabled(findText.isEmpty)
+                }
+            }
+            .navigationTitle("Find & Replace")
+            .navigationBarItems(trailing: Button("Done") { dismiss() })
+        }
+    }
+
+    private func performReplaceAll() {
+        var options: NSString.CompareOptions = []
+        if caseSensitive {
+            options.insert(.caseInsensitive)
+        }
+        if wholeWords {
+            options.insert(.anchored)
+        }
+
+        text = text.replacingOccurrences(of: findText, with: replaceText, options: options)
     }
 }
 

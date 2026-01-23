@@ -11,6 +11,10 @@ struct SchemaSidebarView: View {
 
     @State private var searchText = ""
     @State private var selectedCategory: SchemaCategory = .tables
+    @State private var showCreateTable = false
+    @State private var tableToInsert: TableSchema?
+    @State private var tableToDelete: TableSchema?
+    @State private var tableToTruncate: TableSchema?
 
     private var isCompact: Bool {
         appState.displayDensity == .compact
@@ -24,6 +28,7 @@ struct SchemaSidebarView: View {
             // Quick Actions Bar
             SidebarQuickActionsBar(
                 workspace: workspace,
+                showCreateTable: $showCreateTable,
                 onImport: onImport,
                 onBackup: onBackup,
                 isCompact: isCompact
@@ -46,19 +51,78 @@ struct SchemaSidebarView: View {
                     category: selectedCategory,
                     searchText: searchText,
                     workspace: workspace,
-                    isCompact: isCompact
+                    isCompact: isCompact,
+                    onInsertRow: { tableToInsert = $0 },
+                    onTruncateTable: { tableToTruncate = $0 },
+                    onDropTable: { tableToDelete = $0 },
+                    onCreateTable: { showCreateTable = true },
+                    onViewStructure: { table in
+                        workspace.openTable(table.name)
+                        // Note: To truly switch to "Structure" mode we might need more logic
+                        // but for now this fixes the scope error
+                    }
                 )
             } else {
                 SidebarLoadingView()
             }
         }
+        .padding(.top, 20)
         .background(Color(.systemBackground))
+        .sheet(isPresented: $showCreateTable) {
+            CreateTableWizardView()
+                .environmentObject(dbService)
+        }
+        .sheet(item: $tableToInsert) { table in
+            SchemaInsertRowView(table: table)
+                .environmentObject(dbService)
+        }
+        .sheet(item: $tableToDelete) { table in
+            DropTableConfirmationView(table: table) {
+                dropTable(table)
+            }
+        }
+        .sheet(item: $tableToTruncate) { table in
+            TruncateTableView(table: table) {
+                truncateTable(table)
+            }
+        }
+    }
+    
+    private func dropTable(_ table: TableSchema) {
+        let dbType = workspace.connection.type
+        let quote = dbType == .mysql ? "`" : "\""
+        let sql = "DROP TABLE \(quote)\(table.name)\(quote);"
+
+        Task {
+            _ = await dbService.executeQuery(sql, in: workspace)
+            await MainActor.run {
+                tableToDelete = nil
+                Task { await dbService.loadSchema(for: workspace) }
+            }
+        }
+    }
+
+    private func truncateTable(_ table: TableSchema) {
+        let dbType = workspace.connection.type
+        let quote = dbType == .mysql ? "`" : "\""
+        let sql = dbType == .sqlite
+            ? "DELETE FROM \(quote)\(table.name)\(quote);"
+            : "TRUNCATE TABLE \(quote)\(table.name)\(quote);"
+
+        Task {
+            _ = await dbService.executeQuery(sql, in: workspace)
+            await MainActor.run {
+                tableToTruncate = nil
+                Task { await dbService.loadSchema(for: workspace) }
+            }
+        }
     }
 }
 
 // MARK: - Connection Header
 
 struct SidebarConnectionHeader: View {
+    @EnvironmentObject var dbService: DatabaseService
     @ObservedObject var workspace: WorkspaceTab
     let isCompact: Bool
 
@@ -98,6 +162,21 @@ struct SidebarConnectionHeader: View {
             }
 
             Spacer()
+
+            // Refresh button
+            Button(action: {
+                Task {
+                    await dbService.loadSchema(for: workspace)
+                }
+            }) {
+                Image(systemName: "arrow.clockwise")
+                    .font(.system(size: isCompact ? 14 : 16, weight: .medium))
+                    .foregroundColor(.blue)
+                    .padding(8)
+                    .background(Color.blue.opacity(0.1))
+                    .cornerRadius(8)
+            }
+            .buttonStyle(.plain)
 
             // Stats badge
             if let schema = workspace.schema {
@@ -149,6 +228,7 @@ struct SidebarStatsBadge: View {
 
 struct SidebarQuickActionsBar: View {
     @ObservedObject var workspace: WorkspaceTab
+    @Binding var showCreateTable: Bool
     let onImport: () -> Void
     let onBackup: () -> Void
     let isCompact: Bool
@@ -379,22 +459,38 @@ struct SidebarCategoryTab: View {
 // MARK: - Object List
 
 struct SidebarObjectListView: View {
+    @EnvironmentObject var dbService: DatabaseService
     let schema: DatabaseSchema
     let category: SchemaCategory
     let searchText: String
     @ObservedObject var workspace: WorkspaceTab
     let isCompact: Bool
-
+    
+    var onInsertRow: (TableSchema) -> Void
+    var onTruncateTable: (TableSchema) -> Void
+    var onDropTable: (TableSchema) -> Void
+    var onCreateTable: () -> Void
+    var onViewStructure: (TableSchema) -> Void
+    
     var body: some View {
         ScrollView {
             LazyVStack(spacing: 2) {
                 switch category {
                 case .tables:
+                    SidebarSectionHeader(
+                        title: "Tables",
+                        count: schema.tables.count,
+                        onAdd: onCreateTable
+                    )
                     ForEach(filteredTables, id: \.name) { table in
                         SidebarTableRow(
                             table: table,
                             isSelected: workspace.currentSubTab?.tableContext == table.name,
-                            isCompact: isCompact
+                            isCompact: isCompact,
+                            onInsertRow: { onInsertRow(table) },
+                            onTruncate: { onTruncateTable(table) },
+                            onDrop: { onDropTable(table) },
+                            onViewStructure: { onViewStructure(table) }
                         ) {
                             withAnimation(.spring(response: 0.3)) {
                                 workspace.openTable(table.name)
@@ -471,6 +567,9 @@ struct SidebarObjectListView: View {
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
         }
+        .refreshable {
+            await dbService.loadSchema(for: workspace)
+        }
     }
 
     private var filteredTables: [TableSchema] {
@@ -510,6 +609,7 @@ struct SidebarObjectListView: View {
 struct SidebarSectionHeader: View {
     let title: String
     let count: Int
+    var onAdd: (() -> Void)? = nil
 
     var body: some View {
         HStack {
@@ -518,6 +618,16 @@ struct SidebarSectionHeader: View {
                 .foregroundColor(.secondary)
 
             Spacer()
+            
+            if let onAdd = onAdd {
+                Button(action: onAdd) {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 14))
+                        .foregroundColor(.blue)
+                }
+                .buttonStyle(.plain)
+                .padding(.trailing, 4)
+            }
 
             Text("\(count)")
                 .font(.system(size: 10, weight: .medium, design: .rounded))
@@ -535,10 +645,16 @@ struct SidebarTableRow: View {
     let table: TableSchema
     let isSelected: Bool
     let isCompact: Bool
+    
+    var onInsertRow: () -> Void
+    var onTruncate: () -> Void
+    var onDrop: () -> Void
+    var onViewStructure: () -> Void
+    
     let action: () -> Void
-
+    
     @State private var isHovered = false
-
+    
     var body: some View {
         Button(action: action) {
             HStack(spacing: 12) {
@@ -589,6 +705,31 @@ struct SidebarTableRow: View {
             )
         }
         .buttonStyle(.plain)
+        .contextMenu {
+            Button(action: action) {
+                Label("View Data", systemImage: "tablecells")
+            }
+            
+            Button(action: onViewStructure) {
+                Label("View Structure", systemImage: "list.bullet.rectangle")
+            }
+            
+            Divider()
+            
+            Button(action: onInsertRow) {
+                Label("Insert Row", systemImage: "plus.rectangle")
+            }
+            
+            Divider()
+            
+            Button(action: onTruncate) {
+                Label("Truncate Table", systemImage: "arrow.triangle.2.circlepath")
+            }
+            
+            Button(role: .destructive, action: onDrop) {
+                Label("Drop Table", systemImage: "trash")
+            }
+        }
         .onHover { hovering in
             isHovered = hovering
         }

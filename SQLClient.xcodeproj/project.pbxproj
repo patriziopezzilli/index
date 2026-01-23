@@ -11,7 +11,6 @@
 		786645FC2F228F4F003EAEF0 /* _ConnectionPoolModule in Frameworks */ = {isa = PBXBuildFile; productRef = 786645FB2F228F4F003EAEF0 /* _ConnectionPoolModule */; };
 		786645FE2F228F4F003EAEF0 /* _ConnectionPoolTestUtils in Frameworks */ = {isa = PBXBuildFile; productRef = 786645FD2F228F4F003EAEF0 /* _ConnectionPoolTestUtils */; };
 		786646012F228F6F003EAEF0 /* MySQLNIO in Frameworks */ = {isa = PBXBuildFile; productRef = 786646002F228F6F003EAEF0 /* MySQLNIO */; };
-		786646242F2349AA003EAEF0 /* NIOSSH in Frameworks */ = {isa = PBXBuildFile; productRef = 786646252F2349AA003EAEF0 /* NIOSSH */; };
 		7866460E2F229455003EAEF0 /* MySQLDriver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7866460C2F229455003EAEF0 /* MySQLDriver.swift */; };
 		7866460F2F229455003EAEF0 /* PostgresDriver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7866460D2F229455003EAEF0 /* PostgresDriver.swift */; };
 		786646122F229685003EAEF0 /* DatabaseWorkspaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 786646102F229685003EAEF0 /* DatabaseWorkspaceView.swift */; };
@@ -23,6 +22,16 @@
 		7866461F2F22C92F003EAEF0 /* DataManipulationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7866461E2F22C92F003EAEF0 /* DataManipulationView.swift */; };
 		786646212F22C990003EAEF0 /* TransactionControlsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 786646202F22C990003EAEF0 /* TransactionControlsView.swift */; };
 		786646232F2348EB003EAEF0 /* SchemaSidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 786646222F2348EB003EAEF0 /* SchemaSidebarView.swift */; };
+		786646242F2349AA003EAEF0 /* NIOSSH in Frameworks */ = {isa = PBXBuildFile; productRef = 786646252F2349AA003EAEF0 /* NIOSSH */; };
+		786646262F23E680003EAEF0 /* PerformanceDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 786646242F23E680003EAEF0 /* PerformanceDashboardView.swift */; };
+		786646272F23E680003EAEF0 /* QueryTemplatesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 786646252F23E680003EAEF0 /* QueryTemplatesView.swift */; };
+		786646292F23E918003EAEF0 /* DataVisualizationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 786646282F23E918003EAEF0 /* DataVisualizationView.swift */; };
+		7866462C2F23E92A003EAEF0 /* SchemaComparisonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7866462A2F23E92A003EAEF0 /* SchemaComparisonView.swift */; };
+		7866462D2F23E92A003EAEF0 /* VoiceToSQLView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7866462B2F23E92A003EAEF0 /* VoiceToSQLView.swift */; };
+		786646302F23EC55003EAEF0 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 7866462F2F23EC55003EAEF0 /* FirebaseAnalytics */; };
+		786646322F23ECDE003EAEF0 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 786646312F23ECDE003EAEF0 /* GoogleService-Info.plist */; };
+		786646342F23EDB4003EAEF0 /* AppStoreReviewService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 786646332F23EDB4003EAEF0 /* AppStoreReviewService.swift */; };
+		786646362F23EDBC003EAEF0 /* AppStoreReviewPromptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 786646352F23EDBC003EAEF0 /* AppStoreReviewPromptView.swift */; };
 		A1000001 /* SQLClientApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000001 /* SQLClientApp.swift */; };
 		A1000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000002 /* ContentView.swift */; };
 		A1000003 /* DatabaseConnection.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000003 /* DatabaseConnection.swift */; };
@@ -70,6 +79,14 @@
 		7866461E2F22C92F003EAEF0 /* DataManipulationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataManipulationView.swift; sourceTree = "<group>"; };
 		786646202F22C990003EAEF0 /* TransactionControlsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionControlsView.swift; sourceTree = "<group>"; };
 		786646222F2348EB003EAEF0 /* SchemaSidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SchemaSidebarView.swift; sourceTree = "<group>"; };
+		786646242F23E680003EAEF0 /* PerformanceDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerformanceDashboardView.swift; sourceTree = "<group>"; };
+		786646252F23E680003EAEF0 /* QueryTemplatesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueryTemplatesView.swift; sourceTree = "<group>"; };
+		786646282F23E918003EAEF0 /* DataVisualizationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataVisualizationView.swift; sourceTree = "<group>"; };
+		7866462A2F23E92A003EAEF0 /* SchemaComparisonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SchemaComparisonView.swift; sourceTree = "<group>"; };
+		7866462B2F23E92A003EAEF0 /* VoiceToSQLView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceToSQLView.swift; sourceTree = "<group>"; };
+		786646312F23ECDE003EAEF0 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		786646332F23EDB4003EAEF0 /* AppStoreReviewService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStoreReviewService.swift; sourceTree = "<group>"; };
+		786646352F23EDBC003EAEF0 /* AppStoreReviewPromptView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStoreReviewPromptView.swift; sourceTree = "<group>"; };
 		B1000000 /* SQLClient.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SQLClient.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B1000001 /* SQLClientApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLClientApp.swift; sourceTree = "<group>"; };
 		B1000002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -114,6 +131,7 @@
 			files = (
 				786646012F228F6F003EAEF0 /* MySQLNIO in Frameworks */,
 				786645FE2F228F4F003EAEF0 /* _ConnectionPoolTestUtils in Frameworks */,
+				786646302F23EC55003EAEF0 /* FirebaseAnalytics in Frameworks */,
 				786645FC2F228F4F003EAEF0 /* _ConnectionPoolModule in Frameworks */,
 				786645FA2F228F4F003EAEF0 /* PostgresNIO in Frameworks */,
 				786646242F2349AA003EAEF0 /* NIOSSH in Frameworks */,
@@ -143,6 +161,7 @@
 		D1000001 = {
 			isa = PBXGroup;
 			children = (
+				786646312F23ECDE003EAEF0 /* GoogleService-Info.plist */,
 				D1000002 /* SQLClient */,
 				D1000003 /* Products */,
 			);
@@ -189,6 +208,7 @@
 		D1000005 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				786646332F23EDB4003EAEF0 /* AppStoreReviewService.swift */,
 				786646172F22C743003EAEF0 /* ImportExportService.swift */,
 				7866460C2F229455003EAEF0 /* MySQLDriver.swift */,
 				7866460D2F229455003EAEF0 /* PostgresDriver.swift */,
@@ -204,6 +224,7 @@
 		D1000006 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				786646352F23EDBC003EAEF0 /* AppStoreReviewPromptView.swift */,
 				7866461A2F22C74B003EAEF0 /* ERModel */,
 				786646112F229685003EAEF0 /* Workspace */,
 				B1000007 /* MainTabView.swift */,
@@ -239,6 +260,7 @@
 		D1000009 /* Editor */ = {
 			isa = PBXGroup;
 			children = (
+				786646282F23E918003EAEF0 /* DataVisualizationView.swift */,
 				786646202F22C990003EAEF0 /* TransactionControlsView.swift */,
 				B1000010 /* SQLEditorView.swift */,
 				B1000011 /* QueryResultView.swift */,
@@ -260,6 +282,10 @@
 		D1000011 /* Settings */ = {
 			isa = PBXGroup;
 			children = (
+				7866462A2F23E92A003EAEF0 /* SchemaComparisonView.swift */,
+				7866462B2F23E92A003EAEF0 /* VoiceToSQLView.swift */,
+				786646242F23E680003EAEF0 /* PerformanceDashboardView.swift */,
+				786646252F23E680003EAEF0 /* QueryTemplatesView.swift */,
 				B1000013 /* SettingsView.swift */,
 			);
 			path = Settings;
@@ -343,6 +369,7 @@
 				786645F82F228F4F003EAEF0 /* XCRemoteSwiftPackageReference "postgres-nio" */,
 				786645FF2F228F6F003EAEF0 /* XCRemoteSwiftPackageReference "mysql-nio" */,
 				786646262F2349AA003EAEF0 /* XCRemoteSwiftPackageReference "swift-nio-ssh" */,
+				7866462E2F23EC55003EAEF0 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 			);
 			productRefGroup = D1000003 /* Products */;
 			projectDirPath = "";
@@ -359,6 +386,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A1000014 /* Assets.xcassets in Resources */,
+				786646322F23ECDE003EAEF0 /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -378,7 +406,10 @@
 				A1000006 /* OnboardingView.swift in Sources */,
 				A1000007 /* MainTabView.swift in Sources */,
 				A1000009 /* AddConnectionView.swift in Sources */,
+				786646262F23E680003EAEF0 /* PerformanceDashboardView.swift in Sources */,
+				786646272F23E680003EAEF0 /* QueryTemplatesView.swift in Sources */,
 				A1000010 /* SQLEditorView.swift in Sources */,
+				786646362F23EDBC003EAEF0 /* AppStoreReviewPromptView.swift in Sources */,
 				A1000011 /* QueryResultView.swift in Sources */,
 				A1000012 /* HistoryView.swift in Sources */,
 				A1000013 /* SettingsView.swift in Sources */,
@@ -389,11 +420,14 @@
 				A1000018 /* SavedQuery.swift in Sources */,
 				7866461D2F22C8BC003EAEF0 /* ConnectionWizardView.swift in Sources */,
 				786646182F22C743003EAEF0 /* ImportExportService.swift in Sources */,
+				786646342F23EDB4003EAEF0 /* AppStoreReviewService.swift in Sources */,
 				A1000019 /* SavedQueriesView.swift in Sources */,
 				7866460E2F229455003EAEF0 /* MySQLDriver.swift in Sources */,
 				7866460F2F229455003EAEF0 /* PostgresDriver.swift in Sources */,
 				A1000020 /* SchemaBrowserView.swift in Sources */,
 				786646122F229685003EAEF0 /* DatabaseWorkspaceView.swift in Sources */,
+				7866462C2F23E92A003EAEF0 /* SchemaComparisonView.swift in Sources */,
+				7866462D2F23E92A003EAEF0 /* VoiceToSQLView.swift in Sources */,
 				786646162F22C53E003EAEF0 /* WorkspaceSubTab.swift in Sources */,
 				A1000021 /* DatabaseDriver.swift in Sources */,
 				A1000022 /* SQLiteDriver.swift in Sources */,
@@ -406,6 +440,7 @@
 				786646212F22C990003EAEF0 /* TransactionControlsView.swift in Sources */,
 				A1000028 /* ConnectionsListView.swift in Sources */,
 				786646142F22BF36003EAEF0 /* WorkspaceTab.swift in Sources */,
+				786646292F23E918003EAEF0 /* DataVisualizationView.swift in Sources */,
 				A1000029 /* SQLEditorWithAutocomplete.swift in Sources */,
 				A1000030 /* QueryHistoryView.swift in Sources */,
 				A1000031 /* CreateTableWizardView.swift in Sources */,
@@ -545,9 +580,12 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
+				DEVELOPMENT_TEAM = X5L4AC69SF;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = SQLClient/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Index;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -563,7 +601,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
-				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -578,9 +616,12 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
+				DEVELOPMENT_TEAM = X5L4AC69SF;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = SQLClient/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Index;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -596,7 +637,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
-				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -651,6 +692,14 @@
 				minimumVersion = 0.10.0;
 			};
 		};
+		7866462E2F23EC55003EAEF0 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.8.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -678,6 +727,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 786646262F2349AA003EAEF0 /* XCRemoteSwiftPackageReference "swift-nio-ssh" */;
 			productName = NIOSSH;
+		};
+		7866462F2F23EC55003EAEF0 /* FirebaseAnalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 7866462E2F23EC55003EAEF0 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalytics;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

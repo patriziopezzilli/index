@@ -11,5 +11,8 @@ struct ContentView: View {
                 OnboardingView()
             }
         }
+        .sheet(isPresented: $appState.showingReviewPrompt) {
+            AppStoreReviewPromptView()
+        }
     }
 }

@@ -1,5 +1,6 @@
 import SwiftUI
 import UniformTypeIdentifiers
+import FirebaseAnalytics
 
 struct DatabaseWorkspaceView: View {
     @EnvironmentObject var dbService: DatabaseService
@@ -11,7 +12,15 @@ struct DatabaseWorkspaceView: View {
     @State private var isExportingBackup = false
     @State private var importError: String?
     @State private var showingSidebarSheet = false
+    @State private var showingDisconnectAlert = false
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    let onReturnToConnections: (() -> Void)?
+
+    init(workspace: WorkspaceTab, isSidebarVisible: Binding<Bool>, onReturnToConnections: (() -> Void)? = nil) {
+        self.workspace = workspace
+        self._isSidebarVisible = isSidebarVisible
+        self.onReturnToConnections = onReturnToConnections
+    }
 
     private var isCompact: Bool {
         horizontalSizeClass == .compact
@@ -31,6 +40,14 @@ struct DatabaseWorkspaceView: View {
             if workspace.schema == nil {
                 await dbService.loadSchema(for: workspace)
             }
+            // Increment workspace opens count for review prompt
+            AppStoreReviewService.shared.incrementWorkspaceOpens()
+
+            // Firebase Analytics: track workspace opened
+            Analytics.logEvent("workspace_opened", parameters: [
+                "database_type": workspace.connection.type.rawValue,
+                "has_schema": workspace.schema != nil ? "true" : "false"
+            ])
         }
         .fileImporter(
             isPresented: $isImporting,
@@ -158,6 +175,14 @@ struct DatabaseWorkspaceView: View {
                 showingSidebarSheet = false
             }
         }
+        .alert("Disconnect from Database", isPresented: $showingDisconnectAlert) {
+            Button("Cancel", role: .cancel) { }
+            Button("Disconnect", role: .destructive) {
+                disconnectAndReturnToConnections()
+            }
+        } message: {
+            Text("Are you sure you want to disconnect from \(workspace.connection.name)? Any unsaved changes will be lost.")
+        }
     }
 
     // MARK: - iPad Layout
@@ -195,7 +220,8 @@ struct DatabaseWorkspaceView: View {
                     isImporting: $isImporting,
                     workspace: workspace,
                     connectionName: workspace.connection.name,
-                    onImport: handleImport
+                    onImport: handleImport,
+                    onDisconnect: { showingDisconnectAlert = true }
                 )
 
                 WorkspaceSubTabBar(workspace: workspace)
@@ -250,6 +276,14 @@ struct DatabaseWorkspaceView: View {
             importError = error.localizedDescription
         }
     }
+
+    private func disconnectAndReturnToConnections() {
+        // Disconnect the current workspace
+        dbService.disconnect(workspace: workspace)
+        
+        // Navigate back to connections view
+        onReturnToConnections?()
+    }
 }
 
 struct WorkspaceHeader: View {
@@ -258,6 +292,7 @@ struct WorkspaceHeader: View {
     @ObservedObject var workspace: WorkspaceTab
     let connectionName: String
     let onImport: (Result<[URL], Error>) -> Void
+    let onDisconnect: () -> Void
     @EnvironmentObject var dbService: DatabaseService
 
     var body: some View {
@@ -294,6 +329,19 @@ struct WorkspaceHeader: View {
                 // Transaction quick menu
                 TransactionQuickMenu(workspace: workspace)
                     .environmentObject(dbService)
+
+                // Disconnect button
+                Button(action: onDisconnect) {
+                    Image(systemName: "power")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(.red)
+                        .frame(width: 32, height: 32)
+                        .background(
+                            Circle()
+                                .fill(Color.red.opacity(0.1))
+                        )
+                }
+                .buttonStyle(.plain)
             }
             .padding(.horizontal)
             .padding(.vertical, 12)
@@ -420,8 +468,83 @@ struct TableDataView: View {
     @State private var result: QueryResult?
     @State private var isLoading = false
     @State private var currentPage = 1
+    @State private var showingInsertRow = false
+    
+    enum TableViewMode {
+        case data
+        case structure
+    }
+    
+    @State private var viewMode: TableViewMode = .data
     
     var body: some View {
+        VStack(spacing: 0) {
+            // Mode Selector
+            HStack {
+                Picker("View Mode", selection: $viewMode) {
+                    Text("Data").tag(TableViewMode.data)
+                    Text("Structure").tag(TableViewMode.structure)
+                }
+                .pickerStyle(.segmented)
+                .frame(width: 200)
+                
+                Spacer()
+                
+                if viewMode == .data {
+                    Button(action: {
+                        showingInsertRow = true
+                    }) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "plus.rectangle")
+                            Text("Insert Row")
+                        }
+                        .font(.system(size: 14))
+                        .foregroundColor(.blue)
+                    }
+                    
+                    Button(action: {
+                        Task { await loadData() }
+                    }) {
+                        Image(systemName: "arrow.clockwise")
+                            .font(.system(size: 14))
+                    }
+                    .padding(.trailing, 8)
+                }
+            }
+            .padding(.horizontal)
+            .padding(.vertical, 8)
+            .background(Color(.secondarySystemBackground).opacity(0.5))
+            
+            Divider()
+            
+            ZStack {
+                if viewMode == .data {
+                    dataView
+                } else {
+                    if let table = workspace.schema?.tables.first(where: { $0.name == tableName }) {
+                        TableStructureView(table: table)
+                    } else {
+                        Text("Table structure not available")
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .task(id: tableName) {
+            currentPage = 1
+            await loadData()
+        }
+        .sheet(isPresented: $showingInsertRow) {
+            if let table = workspace.schema?.tables.first(where: { $0.name == tableName }) {
+                SchemaInsertRowView(table: table)
+                    .environmentObject(dbService)
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private var dataView: some View {
         ZStack {
             if let result = result {
                 QueryResultView(result: result, onPageChange: { newPage in
@@ -449,11 +572,6 @@ struct TableDataView: View {
                 }
                 .transition(.opacity)
             }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .task(id: tableName) {
-            currentPage = 1
-            await loadData()
         }
     }
     

@@ -47,6 +47,45 @@ class ImportExportService {
         return sql
     }
     
+    func generateCSV(columns: [String], rows: [[String]]) -> String {
+        var csv = columns.joined(separator: ",") + "\n"
+        
+        for row in rows {
+            let csvRow = row.map { value in
+                // Escape quotes and wrap in quotes if contains comma, quote, or newline
+                if value.contains(",") || value.contains("\"") || value.contains("\n") {
+                    let escaped = value.replacingOccurrences(of: "\"", with: "\"\"")
+                    return "\"\(escaped)\""
+                }
+                return value
+            }.joined(separator: ",")
+            csv += csvRow + "\n"
+        }
+        
+        return csv
+    }
+    
+    func generateJSON(columns: [String], rows: [[String]]) -> String {
+        var jsonArray: [[String: String]] = []
+        
+        for row in rows {
+            var jsonObject: [String: String] = [:]
+            for (index, column) in columns.enumerated() {
+                if index < row.count {
+                    jsonObject[column] = row[index]
+                }
+            }
+            jsonArray.append(jsonObject)
+        }
+        
+        do {
+            let jsonData = try JSONSerialization.data(withJSONObject: jsonArray, options: .prettyPrinted)
+            return String(data: jsonData, encoding: .utf8) ?? "[]"
+        } catch {
+            return "[]"
+        }
+    }
+    
     // MARK: - Import
     
     func parseSQLScript(_ script: String) -> [String] {

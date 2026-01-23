@@ -49,7 +49,7 @@ struct SchemaBrowserView: View {
             .navigationTitle("Tables")
             .navigationBarTitleDisplayMode(.large)
             .sheet(item: $selectedTable) { table in
-                TableDetailView(table: table, insertText: $insertText)
+                TableDetailView(table: table, insertText: $insertText, onInsertRow: { tableToInsert = $0 })
             }
             .sheet(isPresented: $showCreateTable) {
                 CreateTableWizardView()
@@ -285,7 +285,7 @@ struct SchemaContentView: View {
                     if let createAction = onCreateTable {
                         Button(action: createAction) {
                             HStack(spacing: 8) {
-                                Image(systemName: "plus")
+                                Image(systemName: "tablecells.badge.plus")
                                     .font(.system(size: 18, weight: .semibold))
                                 Text("New Table")
                                     .font(.system(size: 16, weight: .semibold))
@@ -368,8 +368,7 @@ struct BrowserTableRow: View {
     var onInsertRow: ((TableSchema) -> Void)? = nil
 
     var body: some View {
-        Button(action: onTap) {
-            HStack(spacing: 16) {
+        HStack(spacing: 16) {
                 ZStack {
                     Circle()
                         .fill(Color.blue.opacity(0.15))
@@ -419,14 +418,16 @@ struct BrowserTableRow: View {
                         )
                 }
                 .buttonStyle(PlainButtonStyle())
-            }
-            .padding()
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color(.secondarySystemBackground))
-            )
         }
-        .buttonStyle(PlainButtonStyle())
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color(.secondarySystemBackground))
+        )
+        .contentShape(Rectangle())
+        .onTapGesture {
+            onTap()
+        }
         .contextMenu {
             Button(action: onTap) {
                 Label("View Structure", systemImage: "list.bullet.rectangle")
@@ -462,6 +463,7 @@ struct BrowserTableRow: View {
 struct TableDetailView: View {
     let table: TableSchema
     @Binding var insertText: String?
+    let onInsertRow: ((TableSchema) -> Void)?
     @Environment(\.dismiss) var dismiss
 
     var body: some View {
@@ -525,7 +527,17 @@ struct TableDetailView: View {
                     }
                 }
 
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItemGroup(placement: .navigationBarTrailing) {
+                    if let insertRow = onInsertRow {
+                        Button(action: { insertRow(table) }) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "plus.rectangle")
+                                Text("Insert Row")
+                            }
+                            .foregroundColor(.blue)
+                        }
+                    }
+
                     Button(action: {
                         insertText = "SELECT * FROM \(table.name);"
                         dismiss()

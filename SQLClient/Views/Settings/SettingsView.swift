@@ -77,6 +77,32 @@ struct SettingsView: View {
                             )
                         }
 
+                        VStack(alignment: .leading, spacing: 16) {
+                            HStack {
+                                Image(systemName: "chart.bar.fill")
+                                    .foregroundColor(.green)
+                                Text("Performance")
+                                    .font(.system(size: 14, weight: .bold))
+                                    .foregroundColor(.secondary)
+                            }
+                            .padding(.horizontal)
+
+                            VStack(spacing: 0) {
+                                NavigationLink(destination: VoiceToSQLView()) {
+                                    SettingsRow(
+                                        icon: "mic.fill",
+                                        title: "Voice-to-SQL",
+                                        subtitle: "Speak your queries",
+                                        color: .blue
+                                    )
+                                }
+                            }
+                            .background(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .fill(Color(.secondarySystemBackground))
+                            )
+                        }
+
                         VStack(spacing: 0) {
                             Button(action: {
                                 showingClearHistoryAlert = true

@@ -53,20 +53,16 @@ struct ERDiagramView: View {
     private func exportDiagram() {
         isGenerating = true
 
-        DispatchQueue.global(qos: .userInitiated).async {
+        Task { @MainActor in
             let renderer = ImageRenderer(content: ERDiagramContent(schema: schema).padding(40))
             renderer.scale = 3.0
 
             if let image = renderer.uiImage {
-                DispatchQueue.main.async {
-                    self.generatedImage = image
-                    self.isGenerating = false
-                    self.showingShareSheet = true
-                }
+                self.generatedImage = image
+                self.isGenerating = false
+                self.showingShareSheet = true
             } else {
-                DispatchQueue.main.async {
-                    self.isGenerating = false
-                }
+                self.isGenerating = false
             }
         }
     }
@@ -215,3 +211,4 @@ struct ERTableBox: View {
         .shadow(color: tableColor.opacity(0.1), radius: 8, x: 0, y: 4)
     }
 }
+

@@ -17,23 +17,41 @@ struct SchemaInsertRowView: View {
 
                 ScrollView {
                     VStack(alignment: .leading, spacing: 24) {
-                        // Header
-                        VStack(alignment: .leading, spacing: 8) {
+                        // Progress / Header
+                        VStack(alignment: .leading, spacing: 16) {
+                            HStack {
+                                Text("Step 1 of 1")
+                                    .font(.caption2)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.blue)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 4)
+                                    .background(Color.blue.opacity(0.1))
+                                    .cornerRadius(4)
+                                
+                                Spacer()
+                            }
+                            
                             HStack(spacing: 12) {
-                                Image(systemName: "tablecells")
+                                Image(systemName: "plus.square.fill")
                                     .font(.title)
                                     .foregroundColor(.blue)
 
                                 VStack(alignment: .leading, spacing: 4) {
-                                    Text("Insert Row")
+                                    Text("Insert New Row")
                                         .font(.title2)
                                         .fontWeight(.bold)
 
-                                    Text("into \(table.name)")
+                                    Text("Table: \(table.name)")
                                         .font(.subheadline)
                                         .foregroundColor(.secondary)
                                 }
                             }
+                            
+                            // Simple progress line
+                            RoundedRectangle(cornerRadius: 2)
+                                .fill(Color.blue)
+                                .frame(height: 4)
                         }
                         .padding()
                         .background(
@@ -42,10 +60,14 @@ struct SchemaInsertRowView: View {
                         )
 
                         // Column Fields
-                        VStack(alignment: .leading, spacing: 16) {
-                            Text("Column Values")
-                                .font(.headline)
-                                .foregroundColor(.secondary)
+                        VStack(alignment: .leading, spacing: 20) {
+                            HStack {
+                                Text("FIELD DEFINITIONS")
+                                    .font(.system(size: 12, weight: .bold))
+                                    .foregroundColor(.secondary)
+                                Spacer()
+                            }
+                            .padding(.horizontal, 4)
 
                             ForEach(table.columns) { column in
                                 ColumnInputField(

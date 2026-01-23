@@ -67,8 +67,7 @@ struct ConnectionsListView: View {
                                         isActive: isActive,
                                         isConnecting: isConnecting && selectedConnection?.id == connection.id,
                                         isCompact: isCompact,
-                                        onConnect: { connectToConnection(connection) },
-                                        onEdit: { editingConnection = $0 },
+                                        onConnect: { connectToConnection(connection) },                                        onDisconnect: { disconnectFromConnection(connection) },                                        onEdit: { editingConnection = $0 },
                                         onDelete: dbService.deleteConnection,
                                         onToggleFavorite: dbService.toggleFavorite
                                     )
@@ -172,6 +171,12 @@ struct ConnectionsListView: View {
         .frame(height: 500)
     }
 
+    private func disconnectFromConnection(_ connection: DatabaseConnection) {
+        if let workspace = dbService.activeWorkspaces.first(where: { $0.connection.id == connection.id }) {
+            dbService.disconnect(workspace: workspace)
+        }
+    }
+
     private func connectToConnection(_ connection: DatabaseConnection) {
         selectedConnection = connection
         isConnecting = true
@@ -202,6 +207,7 @@ struct ConnectionTile: View {
     let isConnecting: Bool
     var isCompact: Bool = false
     let onConnect: () -> Void
+    let onDisconnect: () -> Void
     let onEdit: (DatabaseConnection) -> Void
     let onDelete: (DatabaseConnection) -> Void
     let onToggleFavorite: (DatabaseConnection) -> Void
@@ -327,8 +333,14 @@ struct ConnectionTile: View {
         }
         .buttonStyle(.plain)
         .contextMenu {
-            Button(action: onConnect) {
-                Label("Connect", systemImage: "play.fill")
+            if isActive {
+                Button(action: onDisconnect) {
+                    Label("Disconnect", systemImage: "stop.fill")
+                }
+            } else {
+                Button(action: onConnect) {
+                    Label("Connect", systemImage: "play.fill")
+                }
             }
 
             Button(action: { onToggleFavorite(connection) }) {
