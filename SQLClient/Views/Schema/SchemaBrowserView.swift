@@ -9,6 +9,7 @@ struct SchemaBrowserView: View {
     @State private var tableToDelete: TableSchema?
     @State private var tableToTruncate: TableSchema?
     @State private var tableToInsert: TableSchema?
+    @State private var showERDiagram = false
     @Binding var insertText: String?
 
     var filteredTables: [TableSchema] {
@@ -40,7 +41,8 @@ struct SchemaBrowserView: View {
                         onCreateTable: { showCreateTable = true },
                         onDropTable: { tableToDelete = $0 },
                         onTruncateTable: { tableToTruncate = $0 },
-                        onInsertRow: { tableToInsert = $0 }
+                        onInsertRow: { tableToInsert = $0 },
+                        onShowERDiagram: { showERDiagram = true }
                     )
                 }
             }
@@ -50,7 +52,7 @@ struct SchemaBrowserView: View {
                 TableDetailView(table: table, insertText: $insertText)
             }
             .sheet(isPresented: $showCreateTable) {
-                CreateTableView()
+                CreateTableWizardView()
                     .environmentObject(databaseService)
             }
             .sheet(item: $tableToDelete) { table in
@@ -66,6 +68,11 @@ struct SchemaBrowserView: View {
             .sheet(item: $tableToInsert) { table in
                 InsertRowView(table: table)
                     .environmentObject(databaseService)
+            }
+            .sheet(isPresented: $showERDiagram) {
+                if let schema = databaseService.currentWorkspace?.schema {
+                    ERDiagramView(schema: schema)
+                }
             }
         }
     }
@@ -196,6 +203,8 @@ struct SchemaContentView: View {
     var onDropTable: ((TableSchema) -> Void)? = nil
     var onTruncateTable: ((TableSchema) -> Void)? = nil
     var onInsertRow: ((TableSchema) -> Void)? = nil
+    var onShowERDiagram: (() -> Void)? = nil
+    @State private var isRefreshing = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -217,10 +226,23 @@ struct SchemaContentView: View {
                 }
                 .padding()
             }
+            .refreshable {
+                isRefreshing = true
+                onRefresh()
+                try? await Task.sleep(nanoseconds: 500_000_000)
+                isRefreshing = false
+            }
         }
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 HStack(spacing: 16) {
+                    if let erAction = onShowERDiagram {
+                        Button(action: erAction) {
+                            Image(systemName: "diagram.split.3x3")
+                                .foregroundColor(.blue)
+                        }
+                    }
+
                     Button(action: onRefresh) {
                         Image(systemName: "arrow.clockwise")
                             .foregroundColor(.blue)
