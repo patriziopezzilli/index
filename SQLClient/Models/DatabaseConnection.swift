@@ -4,14 +4,12 @@ enum DatabaseType: String, Codable, CaseIterable {
     case postgresql = "PostgreSQL"
     case mysql = "MySQL"
     case sqlite = "SQLite"
-    case sqlserver = "SQL Server"
 
     var icon: String {
         switch self {
         case .postgresql: return "cylinder.fill"
         case .mysql: return "server.rack"
         case .sqlite: return "internaldrive.fill"
-        case .sqlserver: return "building.2.fill"
         }
     }
 
@@ -20,7 +18,6 @@ enum DatabaseType: String, Codable, CaseIterable {
         case .postgresql: return .blue
         case .mysql: return .orange
         case .sqlite: return .green
-        case .sqlserver: return .red
         }
     }
 
@@ -29,7 +26,6 @@ enum DatabaseType: String, Codable, CaseIterable {
         case .postgresql: return 5432
         case .mysql: return 3306
         case .sqlite: return 0
-        case .sqlserver: return 1433
         }
     }
 }
@@ -73,9 +69,6 @@ struct DatabaseConnection: Identifiable, Codable, Hashable {
         return info
     }
 
-    // MARK: - Secure Storage
-
-    // Create a safe version without password for UserDefaults storage
     var safeForStorage: StorableConnection {
         StorableConnection(
             id: id,
@@ -92,7 +85,6 @@ struct DatabaseConnection: Identifiable, Codable, Hashable {
         )
     }
 
-    // Create full connection from stored version + keychain password
     static func fromStorable(_ storable: StorableConnection, password: String) -> DatabaseConnection {
         var connection = DatabaseConnection(
             name: storable.name,
@@ -112,7 +104,6 @@ struct DatabaseConnection: Identifiable, Codable, Hashable {
     }
 }
 
-// Connection without password for safe storage
 struct StorableConnection: Codable, Identifiable {
     var id: UUID
     var name: String

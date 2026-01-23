@@ -174,10 +174,31 @@ class SQLiteDriver: DatabaseDriver {
 
     private func loadTableSchema(_ tableName: String, db: OpaquePointer) async throws -> TableSchema {
         var columns: [ColumnSchema] = []
+        var foreignKeys: [ForeignKeySchema] = []
 
-        // Get table info
-        let tableInfoQuery = "PRAGMA table_info('\(tableName)');"
+        // 1. Get foreign key information
+        let fkQuery = "PRAGMA foreign_key_list('\(tableName)');"
         var statement: OpaquePointer?
+        
+        if sqlite3_prepare_v2(db, fkQuery, -1, &statement, nil) == SQLITE_OK {
+            while sqlite3_step(statement) == SQLITE_ROW {
+                // column 3 is 'from' (column name), column 2 is 'table' (target table), column 4 is 'to' (target column)
+                if let fromCol = sqlite3_column_text(statement, 3),
+                   let toTable = sqlite3_column_text(statement, 2),
+                   let toCol = sqlite3_column_text(statement, 4) {
+                    
+                    foreignKeys.append(ForeignKeySchema(
+                        columnName: String(cString: fromCol),
+                        targetTable: String(cString: toTable),
+                        targetColumn: String(cString: toCol)
+                    ))
+                }
+            }
+        }
+        sqlite3_finalize(statement)
+
+        // 2. Get table info
+        let tableInfoQuery = "PRAGMA table_info('\(tableName)');"
 
         if sqlite3_prepare_v2(db, tableInfoQuery, -1, &statement, nil) == SQLITE_OK {
             while sqlite3_step(statement) == SQLITE_ROW {
@@ -198,7 +219,7 @@ class SQLiteDriver: DatabaseDriver {
         }
         sqlite3_finalize(statement)
 
-        // Get row count
+        // 3. Get row count
         let countQuery = "SELECT COUNT(*) FROM \(tableName);"
         var rowCount = 0
 
@@ -209,6 +230,55 @@ class SQLiteDriver: DatabaseDriver {
         }
         sqlite3_finalize(statement)
 
-        return TableSchema(name: tableName, columns: columns, rowCount: rowCount)
+        return TableSchema(name: tableName, columns: columns, foreignKeys: foreignKeys, rowCount: rowCount)
+    }
+
+    func fetchTableData(tableName: String, page: Int, pageSize: Int) async throws -> QueryResult {
+        guard isConnected, let db = db else {
+            throw DatabaseDriverError.notConnected
+        }
+
+        let startTime = Date()
+        let offset = (page - 1) * pageSize
+
+        // 1. Get total count
+        let countQuery = "SELECT COUNT(*) FROM \(tableName);"
+        var totalRows = 0
+        var statement: OpaquePointer?
+        if sqlite3_prepare_v2(db, countQuery, -1, &statement, nil) == SQLITE_OK {
+            if sqlite3_step(statement) == SQLITE_ROW {
+                totalRows = Int(sqlite3_column_int(statement, 0))
+            }
+        }
+        sqlite3_finalize(statement)
+
+        // 2. Get paginated data
+        let dataQuery = "SELECT * FROM \(tableName) LIMIT \(pageSize) OFFSET \(offset);"
+        let result = try await executeSelectQuery(dataQuery, db: db, startTime: startTime)
+
+        return QueryResult(
+            columns: result.columns,
+            rows: result.rows,
+            totalRows: totalRows,
+            page: page,
+            pageSize: pageSize,
+            rowsAffected: nil,
+            executionTime: result.executionTime
+        )
+    }
+
+    func updateCell(tableName: String, columnName: String, newValue: String, primaryKeyColumn: String, primaryKeyValue: String) async throws {
+        guard isConnected, let db = db else {
+            throw DatabaseDriverError.notConnected
+        }
+        
+        let query = "UPDATE \(tableName) SET \(columnName) = '\(newValue.replacingOccurrences(of: "'", with: "''"))' WHERE \(primaryKeyColumn) = '\(primaryKeyValue.replacingOccurrences(of: "'", with: "''"))';"
+        var errorMessage: UnsafeMutablePointer<CChar>?
+        
+        if sqlite3_exec(db, query, nil, nil, &errorMessage) != SQLITE_OK {
+            let error = errorMessage.map { String(cString: $0) } ?? "Unknown error"
+            sqlite3_free(errorMessage)
+            throw DatabaseDriverError.queryFailed(error)
+        }
     }
 }

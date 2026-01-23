@@ -1,6 +1,6 @@
 import Foundation
 
-struct SSHConfig: Codable, Equatable {
+struct SSHConfig: Codable, Equatable, Hashable {
     var enabled: Bool
     var host: String
     var port: Int

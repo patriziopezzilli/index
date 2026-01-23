@@ -3,14 +3,36 @@ import Foundation
 struct DatabaseSchema: Identifiable, Codable {
     let id = UUID()
     let name: String
-    let tables: [TableSchema]
+    var tables: [TableSchema] = []
+    var views: [SchemaObject] = []
+    var sequences: [SchemaObject] = []
+    var functions: [SchemaObject] = []
+    var procedures: [SchemaObject] = []
+    var indexes: [SchemaObject] = []
+
+    static let empty = DatabaseSchema(name: "")
+}
+
+struct SchemaObject: Identifiable, Codable {
+    let id = UUID()
+    let name: String
+    let type: String // e.g., "VIEW", "SEQUENCE", "FUNCTION"
+    let definition: String?
 }
 
 struct TableSchema: Identifiable, Codable {
     let id = UUID()
     let name: String
     let columns: [ColumnSchema]
+    var foreignKeys: [ForeignKeySchema] = []
     let rowCount: Int
+}
+
+struct ForeignKeySchema: Identifiable, Codable {
+    let id = UUID()
+    let columnName: String
+    let targetTable: String
+    let targetColumn: String
 }
 
 struct ColumnSchema: Identifiable, Codable {

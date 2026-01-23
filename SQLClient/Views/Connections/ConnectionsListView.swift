@@ -2,110 +2,116 @@ import SwiftUI
 
 struct ConnectionsListView: View {
     @EnvironmentObject var dbService: DatabaseService
+    @Binding var selectedTab: Int
     @State private var showingAddConnection = false
     @State private var editingConnection: DatabaseConnection?
     @State private var searchText = ""
     @State private var selectedConnection: DatabaseConnection?
     @State private var isConnecting = false
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
+    private var columns: [GridItem] {
+        if horizontalSizeClass == .compact {
+            // iPhone: single column
+            return [GridItem(.flexible(), spacing: 16)]
+        } else {
+            // iPad: adaptive grid
+            return [GridItem(.adaptive(minimum: 200, maximum: 300), spacing: 20)]
+        }
+    }
+
+    private var isCompact: Bool {
+        horizontalSizeClass == .compact
+    }
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ZStack {
-                Color.black.ignoresSafeArea()
+                Color(.systemBackground).ignoresSafeArea()
+
+                // Background subtle gradient
+                LinearGradient(colors: [Color.blue.opacity(0.05), Color.clear], startPoint: .topLeading, endPoint: .bottomTrailing)
+                    .ignoresSafeArea()
 
                 ScrollView {
-                    VStack(spacing: 20) {
-                        // Search Bar
-                        HStack {
-                            Image(systemName: "magnifyingglass")
-                                .foregroundColor(.gray)
-                            TextField("Search connections...", text: $searchText)
-                                .foregroundColor(.white)
-                        }
-                        .padding()
-                        .background(Color.white.opacity(0.05))
-                        .cornerRadius(12)
-                        .padding(.horizontal)
+                    VStack(alignment: .leading, spacing: isCompact ? 20 : 32) {
+                        // Header & Search
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Connections")
+                                .font(.system(size: isCompact ? 28 : 34, weight: .bold))
+                                .foregroundColor(.primary)
 
-                        // Favorites Section
-                        if !dbService.favoriteConnections.isEmpty {
-                            ConnectionSection(
-                                title: "Favorites",
-                                icon: "star.fill",
-                                connections: filteredFavorites,
-                                onConnect: connectToConnection,
-                                onEdit: { editingConnection = $0 },
-                                onDelete: dbService.deleteConnection,
-                                onToggleFavorite: dbService.toggleFavorite
-                            )
-                        }
-
-                        // Recent Section
-                        if !dbService.recentConnections.isEmpty {
-                            ConnectionSection(
-                                title: "Recent",
-                                icon: "clock.fill",
-                                connections: filteredRecent,
-                                onConnect: connectToConnection,
-                                onEdit: { editingConnection = $0 },
-                                onDelete: dbService.deleteConnection,
-                                onToggleFavorite: dbService.toggleFavorite
-                            )
-                        }
-
-                        // All Connections
-                        ConnectionSection(
-                            title: "All Connections",
-                            icon: "cylinder.fill",
-                            connections: filteredConnections,
-                            onConnect: connectToConnection,
-                            onEdit: { editingConnection = $0 },
-                            onDelete: dbService.deleteConnection,
-                            onToggleFavorite: dbService.toggleFavorite
-                        )
-
-                        if dbService.savedConnections.isEmpty {
-                            VStack(spacing: 16) {
-                                Image(systemName: "cylinder")
-                                    .font(.system(size: 60))
-                                    .foregroundColor(.gray)
-
-                                Text("No Saved Connections")
-                                    .font(.headline)
-                                    .foregroundColor(.white)
-
-                                Text("Create your first connection to get started")
-                                    .font(.subheadline)
-                                    .foregroundColor(.gray)
-                                    .multilineTextAlignment(.center)
-
-                                Button(action: { showingAddConnection = true }) {
-                                    Label("Add Connection", systemImage: "plus.circle.fill")
-                                        .foregroundColor(.white)
-                                        .padding()
-                                        .background(Color.blue)
-                                        .cornerRadius(12)
-                                }
-                                .padding(.top)
+                            HStack {
+                                Image(systemName: "magnifyingglass")
+                                    .foregroundColor(.secondary)
+                                TextField("Search connections...", text: $searchText)
+                                    .textFieldStyle(.plain)
                             }
-                            .frame(maxWidth: .infinity)
-                            .padding(40)
+                            .padding(12)
+                            .background(.ultraThinMaterial)
+                            .cornerRadius(12)
+                            .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.gray.opacity(0.1), lineWidth: 1))
+                        }
+                        .padding(.horizontal, isCompact ? 16 : 20)
+                        .padding(.top, isCompact ? 12 : 20)
+
+                        // Tiles Grid
+                        if dbService.savedConnections.isEmpty {
+                            emptyStateView
+                        } else {
+                            LazyVGrid(columns: columns, spacing: isCompact ? 16 : 20) {
+                                ForEach(filteredConnections) { connection in
+                                    let isActive = dbService.activeWorkspaces.contains(where: { $0.connection.id == connection.id })
+                                    ConnectionTile(
+                                        connection: connection,
+                                        isActive: isActive,
+                                        isConnecting: isConnecting && selectedConnection?.id == connection.id,
+                                        isCompact: isCompact,
+                                        onConnect: { connectToConnection(connection) },
+                                        onEdit: { editingConnection = $0 },
+                                        onDelete: dbService.deleteConnection,
+                                        onToggleFavorite: dbService.toggleFavorite
+                                    )
+                                }
+
+                                // "Add New" Tile
+                                Button(action: { showingAddConnection = true }) {
+                                    VStack(spacing: 12) {
+                                        Image(systemName: "plus.circle.fill")
+                                            .font(.system(size: isCompact ? 28 : 32))
+                                            .foregroundColor(.blue)
+
+                                        Text("New Connection")
+                                            .font(.system(size: isCompact ? 13 : 14, weight: .semibold))
+                                            .foregroundColor(.primary)
+                                    }
+                                    .frame(maxWidth: .infinity, minHeight: isCompact ? 120 : 200)
+                                    .background(.ultraThinMaterial)
+                                    .cornerRadius(isCompact ? 16 : 24)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: isCompact ? 16 : 24)
+                                            .stroke(style: StrokeStyle(lineWidth: 2, dash: [6]))
+                                            .foregroundColor(.blue.opacity(0.3))
+                                    )
+                                }
+                            }
+                            .padding(.horizontal, isCompact ? 16 : 20)
                         }
                     }
-                    .padding(.vertical)
+                    .padding(.bottom, 40)
                 }
             }
-            .navigationTitle("Connections")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: { showingAddConnection = true }) {
                         Image(systemName: "plus")
-                            .foregroundColor(.white)
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundColor(.blue)
                     }
                 }
             }
             .sheet(isPresented: $showingAddConnection) {
-                AddConnectionView(onSave: { connection in
+                ConnectionWizardView(onSave: { connection in
                     dbService.saveConnection(connection)
                     showingAddConnection = false
                 })
@@ -119,36 +125,51 @@ struct ConnectionsListView: View {
                 .environmentObject(dbService)
             }
         }
-        .navigationViewStyle(.stack)
     }
 
     private var filteredConnections: [DatabaseConnection] {
-        if searchText.isEmpty {
-            return dbService.savedConnections.sorted { $0.name < $1.name }
-        }
-        return dbService.savedConnections.filter { connection in
-            connection.name.localizedCaseInsensitiveContains(searchText) ||
-            connection.host.localizedCaseInsensitiveContains(searchText) ||
-            connection.database.localizedCaseInsensitiveContains(searchText)
-        }.sorted { $0.name < $1.name }
-    }
-
-    private var filteredFavorites: [DatabaseConnection] {
-        dbService.favoriteConnections.filter { connection in
+        dbService.savedConnections.filter { connection in
             searchText.isEmpty ||
             connection.name.localizedCaseInsensitiveContains(searchText) ||
             connection.host.localizedCaseInsensitiveContains(searchText) ||
             connection.database.localizedCaseInsensitiveContains(searchText)
+        }.sorted { (c1, c2) in
+            if c1.isFavorite != c2.isFavorite { return c1.isFavorite }
+            return c1.name < c2.name
         }
     }
 
-    private var filteredRecent: [DatabaseConnection] {
-        dbService.recentConnections.filter { connection in
-            searchText.isEmpty ||
-            connection.name.localizedCaseInsensitiveContains(searchText) ||
-            connection.host.localizedCaseInsensitiveContains(searchText) ||
-            connection.database.localizedCaseInsensitiveContains(searchText)
+    private var emptyStateView: some View {
+        VStack(spacing: 24) {
+            Spacer()
+            Image(systemName: "cylinder.fill")
+                .font(.system(size: 80))
+                .symbolRenderingMode(.hierarchical)
+                .foregroundColor(.blue)
+            
+            VStack(spacing: 8) {
+                Text("Ready to dive in?")
+                    .font(.title2)
+                    .bold()
+                Text("Create your first database connection to start exploring your data with style.")
+                    .font(.body)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 40)
+            }
+            
+            Button(action: { showingAddConnection = true }) {
+                Text("Add First Connection")
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 32)
+                    .padding(.vertical, 14)
+                    .background(Capsule().fill(Color.blue))
+                    .shadow(color: .blue.opacity(0.3), radius: 10, y: 5)
+            }
+            Spacer()
         }
+        .frame(height: 500)
     }
 
     private func connectToConnection(_ connection: DatabaseConnection) {
@@ -157,7 +178,6 @@ struct ConnectionsListView: View {
 
         Task {
             do {
-                // Get full connection with password from keychain
                 guard let fullConnection = dbService.getConnectionWithPassword(id: connection.id) else {
                     return
                 }
@@ -165,149 +185,172 @@ struct ConnectionsListView: View {
                 try await dbService.connect(to: fullConnection)
                 await MainActor.run {
                     isConnecting = false
+                    selectedTab = 1
                 }
             } catch {
                 await MainActor.run {
                     isConnecting = false
-                    // Show error alert
                 }
             }
         }
     }
 }
 
-struct ConnectionSection: View {
-    let title: String
-    let icon: String
-    let connections: [DatabaseConnection]
-    let onConnect: (DatabaseConnection) -> Void
+struct ConnectionTile: View {
+    let connection: DatabaseConnection
+    let isActive: Bool
+    let isConnecting: Bool
+    var isCompact: Bool = false
+    let onConnect: () -> Void
     let onEdit: (DatabaseConnection) -> Void
     let onDelete: (DatabaseConnection) -> Void
     let onToggleFavorite: (DatabaseConnection) -> Void
 
-    var body: some View {
-        if !connections.isEmpty {
-            VStack(alignment: .leading, spacing: 12) {
-                HStack {
-                    Image(systemName: icon)
-                        .foregroundColor(.blue)
-                    Text(title)
-                        .font(.headline)
-                        .foregroundColor(.white)
-                }
-                .padding(.horizontal)
-
-                VStack(spacing: 8) {
-                    ForEach(connections) { connection in
-                        ConnectionRow(
-                            connection: connection,
-                            onConnect: { onConnect(connection) },
-                            onEdit: { onEdit(connection) },
-                            onDelete: { onDelete(connection) },
-                            onToggleFavorite: { onToggleFavorite(connection) }
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-struct ConnectionRow: View {
-    let connection: DatabaseConnection
-    let onConnect: () -> Void
-    let onEdit: () -> Void
-    let onDelete: () -> Void
-    let onToggleFavorite: () -> Void
+    @State private var isHovering = false
 
     var body: some View {
         Button(action: onConnect) {
-            HStack(spacing: 16) {
-                // Icon
-                ZStack {
-                    Circle()
-                        .fill(connection.type.color.opacity(0.2))
-                        .frame(width: 50, height: 50)
+            VStack(alignment: .leading, spacing: isCompact ? 12 : 16) {
+                HStack(spacing: 8) {
+                    ZStack {
+                        Circle()
+                            .fill(connection.type.color.opacity(0.1))
+                            .frame(width: isCompact ? 36 : 44, height: isCompact ? 36 : 44)
 
-                    Image(systemName: connection.type.icon)
-                        .foregroundColor(connection.type.color)
-                        .font(.system(size: 24))
-                }
+                        Image(systemName: connection.type.icon)
+                            .foregroundColor(connection.type.color)
+                            .font(.system(size: isCompact ? 16 : 20, weight: .semibold))
+                    }
 
-                // Info
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack {
-                        Text(connection.name)
-                            .font(.headline)
-                            .foregroundColor(.white)
+                    if isCompact {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(connection.name)
+                                .font(.system(size: 16, weight: .bold))
+                                .foregroundColor(.primary)
+                                .lineLimit(1)
+
+                            Text(connection.host)
+                                .font(.system(size: 12))
+                                .foregroundColor(.secondary)
+                                .lineLimit(1)
+                        }
+                    }
+
+                    Spacer()
+
+                    HStack(spacing: 6) {
+                        Text(connection.type.rawValue.uppercased())
+                            .font(.system(size: isCompact ? 9 : 10, weight: .black))
+                            .foregroundColor(.secondary.opacity(0.6))
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 3)
+                            .background(Color.primary.opacity(0.05))
+                            .cornerRadius(4)
 
                         if connection.isFavorite {
                             Image(systemName: "star.fill")
                                 .foregroundColor(.yellow)
-                                .font(.caption)
+                                .font(.system(size: isCompact ? 10 : 12))
                         }
-                    }
 
-                    Text(connection.displayInfo)
-                        .font(.subheadline)
-                        .foregroundColor(.gray)
-
-                    HStack(spacing: 12) {
-                        Label(connection.type.rawValue, systemImage: "tag")
-                            .font(.caption)
-                            .foregroundColor(.gray)
-
-                        if let lastUsed = connection.lastUsed {
-                            Label(formatDate(lastUsed), systemImage: "clock")
-                                .font(.caption)
-                                .foregroundColor(.gray)
+                        if isConnecting {
+                            ProgressView().scaleEffect(0.7)
                         }
                     }
                 }
 
-                Spacer()
+                if !isCompact {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(connection.name)
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundColor(.primary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.7)
 
-                Image(systemName: "chevron.right")
-                    .foregroundColor(.gray)
-                    .font(.caption)
+                        Text(connection.host)
+                            .font(.system(size: 13))
+                            .foregroundColor(.secondary)
+                            .lineLimit(1)
+                    }
+
+                    Spacer()
+                }
+
+                HStack(spacing: 8) {
+                    if isActive {
+                        HStack(spacing: 4) {
+                            Circle()
+                                .fill(Color.green)
+                                .frame(width: 6, height: 6)
+                            Text("ACTIVE")
+                                .font(.system(size: 9, weight: .bold))
+                                .foregroundColor(.green)
+                        }
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 3)
+                        .background(Color.green.opacity(0.1))
+                        .cornerRadius(4)
+                    }
+
+                    Text(connection.database)
+                        .font(.system(size: isCompact ? 10 : 11, design: .monospaced))
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color.blue.opacity(0.1))
+                        .foregroundColor(.blue)
+                        .cornerRadius(6)
+                        .lineLimit(1)
+
+                    Spacer()
+
+                    if isCompact {
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(.secondary.opacity(0.5))
+                    }
+                }
             }
-            .padding()
-            .background(Color.white.opacity(0.05))
-            .cornerRadius(12)
-            .padding(.horizontal)
+            .padding(isCompact ? 14 : 20)
+            .background(.ultraThinMaterial)
+            .cornerRadius(isCompact ? 16 : 24)
+            .overlay(
+                RoundedRectangle(cornerRadius: isCompact ? 16 : 24)
+                    .stroke(Color.primary.opacity(isHovering ? 0.2 : 0.05), lineWidth: 1)
+            )
+            .shadow(color: Color.black.opacity(isHovering ? 0.1 : 0.03), radius: isCompact ? 4 : 10, y: isCompact ? 2 : 5)
+            .scaleEffect(isHovering ? 1.02 : 1.0)
+            .onHover { hovering in
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                    isHovering = hovering
+                }
+            }
         }
+        .buttonStyle(.plain)
         .contextMenu {
             Button(action: onConnect) {
                 Label("Connect", systemImage: "play.fill")
             }
 
-            Button(action: onToggleFavorite) {
+            Button(action: { onToggleFavorite(connection) }) {
                 Label(
                     connection.isFavorite ? "Remove from Favorites" : "Add to Favorites",
                     systemImage: connection.isFavorite ? "star.slash" : "star.fill"
                 )
             }
 
-            Button(action: onEdit) {
+            Button(action: { onEdit(connection) }) {
                 Label("Edit", systemImage: "pencil")
             }
 
             Divider()
 
-            Button(role: .destructive, action: onDelete) {
+            Button(role: .destructive, action: { onDelete(connection) }) {
                 Label("Delete", systemImage: "trash")
             }
         }
     }
-
-    private func formatDate(_ date: Date) -> String {
-        let formatter = RelativeDateTimeFormatter()
-        formatter.unitsStyle = .abbreviated
-        return formatter.localizedString(for: date, relativeTo: Date())
-    }
 }
 
-// Edit Connection View
 struct EditConnectionView: View {
     let connection: DatabaseConnection
     let onSave: (DatabaseConnection) -> Void
@@ -334,22 +377,17 @@ struct EditConnectionView: View {
     }
 
     var body: some View {
-        NavigationView {
-            ZStack {
-                Color.black.ignoresSafeArea()
-
-                Form {
-                    Section(header: Text("Connection Details").foregroundColor(.gray)) {
-                        TextField("Connection Name", text: $name)
-                        TextField("Host", text: $host)
-                        TextField("Port", text: $port)
-                            .keyboardType(.numberPad)
-                        TextField("Database", text: $database)
-                        TextField("Username", text: $username)
-                        SecureField("Password", text: $password)
-                    }
+        NavigationStack {
+            Form {
+                Section(header: Text("Connection Details")) {
+                    TextField("Connection Name", text: $name)
+                    TextField("Host", text: $host)
+                    TextField("Port", text: $port)
+                        .keyboardType(.numberPad)
+                    TextField("Database", text: $database)
+                    TextField("Username", text: $username)
+                    SecureField("Password", text: $password)
                 }
-                .scrollContentBackground(.hidden)
             }
             .navigationTitle("Edit Connection")
             .navigationBarTitleDisplayMode(.inline)
@@ -358,7 +396,6 @@ struct EditConnectionView: View {
                     Button("Cancel") {
                         dismiss()
                     }
-                    .foregroundColor(.white)
                 }
 
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -372,7 +409,7 @@ struct EditConnectionView: View {
                         updated.password = password
                         onSave(updated)
                     }
-                    .foregroundColor(.blue)
+                    .fontWeight(.semibold)
                     .disabled(name.isEmpty)
                 }
             }

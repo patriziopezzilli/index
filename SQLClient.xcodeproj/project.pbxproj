@@ -7,6 +7,21 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		786645FA2F228F4F003EAEF0 /* PostgresNIO in Frameworks */ = {isa = PBXBuildFile; productRef = 786645F92F228F4F003EAEF0 /* PostgresNIO */; };
+		786645FC2F228F4F003EAEF0 /* _ConnectionPoolModule in Frameworks */ = {isa = PBXBuildFile; productRef = 786645FB2F228F4F003EAEF0 /* _ConnectionPoolModule */; };
+		786645FE2F228F4F003EAEF0 /* _ConnectionPoolTestUtils in Frameworks */ = {isa = PBXBuildFile; productRef = 786645FD2F228F4F003EAEF0 /* _ConnectionPoolTestUtils */; };
+		786646012F228F6F003EAEF0 /* MySQLNIO in Frameworks */ = {isa = PBXBuildFile; productRef = 786646002F228F6F003EAEF0 /* MySQLNIO */; };
+		7866460E2F229455003EAEF0 /* MySQLDriver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7866460C2F229455003EAEF0 /* MySQLDriver.swift */; };
+		7866460F2F229455003EAEF0 /* PostgresDriver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7866460D2F229455003EAEF0 /* PostgresDriver.swift */; };
+		786646122F229685003EAEF0 /* DatabaseWorkspaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 786646102F229685003EAEF0 /* DatabaseWorkspaceView.swift */; };
+		786646142F22BF36003EAEF0 /* WorkspaceTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 786646132F22BF36003EAEF0 /* WorkspaceTab.swift */; };
+		786646162F22C53E003EAEF0 /* WorkspaceSubTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 786646152F22C53E003EAEF0 /* WorkspaceSubTab.swift */; };
+		786646182F22C743003EAEF0 /* ImportExportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 786646172F22C743003EAEF0 /* ImportExportService.swift */; };
+		7866461B2F22C74B003EAEF0 /* ERModelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 786646192F22C74B003EAEF0 /* ERModelView.swift */; };
+		7866461D2F22C8BC003EAEF0 /* ConnectionWizardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7866461C2F22C8BC003EAEF0 /* ConnectionWizardView.swift */; };
+		7866461F2F22C92F003EAEF0 /* DataManipulationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7866461E2F22C92F003EAEF0 /* DataManipulationView.swift */; };
+		786646212F22C990003EAEF0 /* TransactionControlsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 786646202F22C990003EAEF0 /* TransactionControlsView.swift */; };
+		786646232F2348EB003EAEF0 /* SchemaSidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 786646222F2348EB003EAEF0 /* SchemaSidebarView.swift */; };
 		A1000001 /* SQLClientApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000001 /* SQLClientApp.swift */; };
 		A1000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000002 /* ContentView.swift */; };
 		A1000003 /* DatabaseConnection.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000003 /* DatabaseConnection.swift */; };
@@ -14,7 +29,6 @@
 		A1000005 /* DatabaseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000005 /* DatabaseService.swift */; };
 		A1000006 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000006 /* OnboardingView.swift */; };
 		A1000007 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000007 /* MainTabView.swift */; };
-		A1000008 /* ConnectionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000008 /* ConnectionsView.swift */; };
 		A1000009 /* AddConnectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000009 /* AddConnectionView.swift */; };
 		A1000010 /* SQLEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000010 /* SQLEditorView.swift */; };
 		A1000011 /* QueryResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000011 /* QueryResultView.swift */; };
@@ -40,6 +54,17 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		7866460C2F229455003EAEF0 /* MySQLDriver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MySQLDriver.swift; sourceTree = "<group>"; };
+		7866460D2F229455003EAEF0 /* PostgresDriver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostgresDriver.swift; sourceTree = "<group>"; };
+		786646102F229685003EAEF0 /* DatabaseWorkspaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatabaseWorkspaceView.swift; sourceTree = "<group>"; };
+		786646132F22BF36003EAEF0 /* WorkspaceTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkspaceTab.swift; sourceTree = "<group>"; };
+		786646152F22C53E003EAEF0 /* WorkspaceSubTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkspaceSubTab.swift; sourceTree = "<group>"; };
+		786646172F22C743003EAEF0 /* ImportExportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportExportService.swift; sourceTree = "<group>"; };
+		786646192F22C74B003EAEF0 /* ERModelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ERModelView.swift; sourceTree = "<group>"; };
+		7866461C2F22C8BC003EAEF0 /* ConnectionWizardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionWizardView.swift; sourceTree = "<group>"; };
+		7866461E2F22C92F003EAEF0 /* DataManipulationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataManipulationView.swift; sourceTree = "<group>"; };
+		786646202F22C990003EAEF0 /* TransactionControlsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionControlsView.swift; sourceTree = "<group>"; };
+		786646222F2348EB003EAEF0 /* SchemaSidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SchemaSidebarView.swift; sourceTree = "<group>"; };
 		B1000000 /* SQLClient.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SQLClient.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B1000001 /* SQLClientApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLClientApp.swift; sourceTree = "<group>"; };
 		B1000002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -48,7 +73,6 @@
 		B1000005 /* DatabaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatabaseService.swift; sourceTree = "<group>"; };
 		B1000006 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		B1000007 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
-		B1000008 /* ConnectionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionsView.swift; sourceTree = "<group>"; };
 		B1000009 /* AddConnectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddConnectionView.swift; sourceTree = "<group>"; };
 		B1000010 /* SQLEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLEditorView.swift; sourceTree = "<group>"; };
 		B1000011 /* QueryResultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueryResultView.swift; sourceTree = "<group>"; };
@@ -79,12 +103,33 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				786646012F228F6F003EAEF0 /* MySQLNIO in Frameworks */,
+				786645FE2F228F4F003EAEF0 /* _ConnectionPoolTestUtils in Frameworks */,
+				786645FC2F228F4F003EAEF0 /* _ConnectionPoolModule in Frameworks */,
+				786645FA2F228F4F003EAEF0 /* PostgresNIO in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		786646112F229685003EAEF0 /* Workspace */ = {
+			isa = PBXGroup;
+			children = (
+				786646222F2348EB003EAEF0 /* SchemaSidebarView.swift */,
+				786646102F229685003EAEF0 /* DatabaseWorkspaceView.swift */,
+			);
+			path = Workspace;
+			sourceTree = "<group>";
+		};
+		7866461A2F22C74B003EAEF0 /* ERModel */ = {
+			isa = PBXGroup;
+			children = (
+				786646192F22C74B003EAEF0 /* ERModelView.swift */,
+			);
+			path = ERModel;
+			sourceTree = "<group>";
+		};
 		D1000001 = {
 			isa = PBXGroup;
 			children = (
@@ -119,6 +164,8 @@
 		D1000004 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				786646152F22C53E003EAEF0 /* WorkspaceSubTab.swift */,
+				786646132F22BF36003EAEF0 /* WorkspaceTab.swift */,
 				B1000003 /* DatabaseConnection.swift */,
 				B1000004 /* QueryResult.swift */,
 				B1000015 /* DatabaseSchema.swift */,
@@ -132,6 +179,9 @@
 		D1000005 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				786646172F22C743003EAEF0 /* ImportExportService.swift */,
+				7866460C2F229455003EAEF0 /* MySQLDriver.swift */,
+				7866460D2F229455003EAEF0 /* PostgresDriver.swift */,
 				B1000005 /* DatabaseService.swift */,
 				B1000021 /* DatabaseDriver.swift */,
 				B1000022 /* SQLiteDriver.swift */,
@@ -143,6 +193,8 @@
 		D1000006 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				7866461A2F22C74B003EAEF0 /* ERModel */,
+				786646112F229685003EAEF0 /* Workspace */,
 				B1000007 /* MainTabView.swift */,
 				D1000007 /* Onboarding */,
 				D1000008 /* Connections */,
@@ -166,7 +218,7 @@
 		D1000008 /* Connections */ = {
 			isa = PBXGroup;
 			children = (
-				B1000008 /* ConnectionsView.swift */,
+				7866461C2F22C8BC003EAEF0 /* ConnectionWizardView.swift */,
 				B1000009 /* AddConnectionView.swift */,
 				B1000029 /* ConnectionsListView.swift */,
 			);
@@ -176,6 +228,7 @@
 		D1000009 /* Editor */ = {
 			isa = PBXGroup;
 			children = (
+				786646202F22C990003EAEF0 /* TransactionControlsView.swift */,
 				B1000010 /* SQLEditorView.swift */,
 				B1000011 /* QueryResultView.swift */,
 				B1000026 /* SQLTextEditor.swift */,
@@ -212,6 +265,7 @@
 		D1000013 /* Schema */ = {
 			isa = PBXGroup;
 			children = (
+				7866461E2F22C92F003EAEF0 /* DataManipulationView.swift */,
 				B1000020 /* SchemaBrowserView.swift */,
 			);
 			path = Schema;
@@ -271,6 +325,10 @@
 				Base,
 			);
 			mainGroup = D1000001;
+			packageReferences = (
+				786645F82F228F4F003EAEF0 /* XCRemoteSwiftPackageReference "postgres-nio" */,
+				786645FF2F228F6F003EAEF0 /* XCRemoteSwiftPackageReference "mysql-nio" */,
+			);
 			productRefGroup = D1000003 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -301,9 +359,9 @@
 				A1000003 /* DatabaseConnection.swift in Sources */,
 				A1000004 /* QueryResult.swift in Sources */,
 				A1000005 /* DatabaseService.swift in Sources */,
+				7866461B2F22C74B003EAEF0 /* ERModelView.swift in Sources */,
 				A1000006 /* OnboardingView.swift in Sources */,
 				A1000007 /* MainTabView.swift in Sources */,
-				A1000008 /* ConnectionsView.swift in Sources */,
 				A1000009 /* AddConnectionView.swift in Sources */,
 				A1000010 /* SQLEditorView.swift in Sources */,
 				A1000011 /* QueryResultView.swift in Sources */,
@@ -312,17 +370,27 @@
 				A1000015 /* DatabaseSchema.swift in Sources */,
 				A1000016 /* QueryTab.swift in Sources */,
 				A1000017 /* SSHConfig.swift in Sources */,
+				7866461F2F22C92F003EAEF0 /* DataManipulationView.swift in Sources */,
 				A1000018 /* SavedQuery.swift in Sources */,
+				7866461D2F22C8BC003EAEF0 /* ConnectionWizardView.swift in Sources */,
+				786646182F22C743003EAEF0 /* ImportExportService.swift in Sources */,
 				A1000019 /* SavedQueriesView.swift in Sources */,
+				7866460E2F229455003EAEF0 /* MySQLDriver.swift in Sources */,
+				7866460F2F229455003EAEF0 /* PostgresDriver.swift in Sources */,
 				A1000020 /* SchemaBrowserView.swift in Sources */,
+				786646122F229685003EAEF0 /* DatabaseWorkspaceView.swift in Sources */,
+				786646162F22C53E003EAEF0 /* WorkspaceSubTab.swift in Sources */,
 				A1000021 /* DatabaseDriver.swift in Sources */,
 				A1000022 /* SQLiteDriver.swift in Sources */,
+				786646232F2348EB003EAEF0 /* SchemaSidebarView.swift in Sources */,
 				A1000023 /* SQLAutocomplete.swift in Sources */,
 				A1000024 /* SQLFormatter.swift in Sources */,
 				A1000025 /* SQLSyntaxHighlighter.swift in Sources */,
 				A1000026 /* SQLTextEditor.swift in Sources */,
 				A1000027 /* KeychainService.swift in Sources */,
+				786646212F22C990003EAEF0 /* TransactionControlsView.swift in Sources */,
 				A1000028 /* ConnectionsListView.swift in Sources */,
+				786646142F22BF36003EAEF0 /* WorkspaceTab.swift in Sources */,
 				A1000029 /* SQLEditorWithAutocomplete.swift in Sources */,
 				A1000030 /* QueryHistoryView.swift in Sources */,
 			);
@@ -519,15 +587,6 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		F1000002 /* Build configuration list for PBXProject "SQLClient" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				G1000001 /* Debug */,
-				G1000002 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 		E1000002 /* Build configuration list for PBXNativeTarget "SQLClient" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -537,7 +596,58 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		F1000002 /* Build configuration list for PBXProject "SQLClient" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				G1000001 /* Debug */,
+				G1000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		786645F82F228F4F003EAEF0 /* XCRemoteSwiftPackageReference "postgres-nio" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/vapor/postgres-nio.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.30.1;
+			};
+		};
+		786645FF2F228F6F003EAEF0 /* XCRemoteSwiftPackageReference "mysql-nio" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/vapor/mysql-nio.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.9.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		786645F92F228F4F003EAEF0 /* PostgresNIO */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 786645F82F228F4F003EAEF0 /* XCRemoteSwiftPackageReference "postgres-nio" */;
+			productName = PostgresNIO;
+		};
+		786645FB2F228F4F003EAEF0 /* _ConnectionPoolModule */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 786645F82F228F4F003EAEF0 /* XCRemoteSwiftPackageReference "postgres-nio" */;
+			productName = _ConnectionPoolModule;
+		};
+		786645FD2F228F4F003EAEF0 /* _ConnectionPoolTestUtils */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 786645F82F228F4F003EAEF0 /* XCRemoteSwiftPackageReference "postgres-nio" */;
+			productName = _ConnectionPoolTestUtils;
+		};
+		786646002F228F6F003EAEF0 /* MySQLNIO */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 786645FF2F228F6F003EAEF0 /* XCRemoteSwiftPackageReference "mysql-nio" */;
+			productName = MySQLNIO;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = F1000001 /* Project object */;
 }

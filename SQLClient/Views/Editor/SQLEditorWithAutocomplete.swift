@@ -19,13 +19,11 @@ struct SQLEditorWithAutocomplete: View {
                 updateSuggestions(for: newValue)
             }
 
-            // Autocomplete suggestions overlay
             if showSuggestions && !suggestions.isEmpty {
                 VStack(spacing: 0) {
                     Spacer()
 
                     VStack(spacing: 0) {
-                        // Header
                         HStack {
                             Image(systemName: "lightbulb.fill")
                                 .foregroundColor(.yellow)
@@ -34,24 +32,22 @@ struct SQLEditorWithAutocomplete: View {
                             Text("Suggestions")
                                 .font(.caption)
                                 .fontWeight(.semibold)
-                                .foregroundColor(.white)
+                                .foregroundColor(.primary)
 
                             Spacer()
 
                             Button(action: { showSuggestions = false }) {
                                 Image(systemName: "xmark.circle.fill")
-                                    .foregroundColor(.gray)
+                                    .foregroundColor(.secondary)
                                     .font(.caption)
                             }
                         }
                         .padding(.horizontal, 12)
                         .padding(.vertical, 8)
-                        .background(Color.white.opacity(0.1))
+                        .background(Color(.tertiarySystemBackground))
 
                         Divider()
-                            .background(Color.white.opacity(0.2))
 
-                        // Suggestions list
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 8) {
                                 ForEach(suggestions.prefix(10), id: \.text) { suggestion in
@@ -65,18 +61,17 @@ struct SQLEditorWithAutocomplete: View {
                         }
                         .frame(maxHeight: 80)
                     }
-                    .background(Color.black.opacity(0.95))
+                    .background(Color(.secondarySystemBackground))
                     .cornerRadius(12, corners: [.topLeft, .topRight])
-                    .shadow(color: .black.opacity(0.3), radius: 10, y: -5)
+                    .shadow(color: .black.opacity(0.1), radius: 10, y: -5)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
-                .padding(.bottom, 44) // Account for keyboard toolbar
+                .padding(.bottom, 44)
             }
         }
     }
 
     private func updateSuggestions(for query: String) {
-        // Get the word at cursor position
         let currentWord = getCurrentWord(from: query)
 
         guard !currentWord.isEmpty else {
@@ -86,8 +81,7 @@ struct SQLEditorWithAutocomplete: View {
             return
         }
 
-        // Get suggestions from autocomplete helper
-        let schema = dbService.currentSchema
+        let schema = dbService.currentWorkspace?.schema
         let newSuggestions = SQLAutocomplete.getSuggestions(
             for: query,
             currentWord: currentWord,
@@ -107,7 +101,6 @@ struct SQLEditorWithAutocomplete: View {
     }
 
     private func getCurrentWord(from query: String) -> String {
-        // Find the word at the end of the query (simplified)
         let components = query.components(separatedBy: CharacterSet.alphanumerics.inverted)
         return components.last ?? ""
     }
@@ -115,11 +108,9 @@ struct SQLEditorWithAutocomplete: View {
     private func insertSuggestion(_ suggestion: SQLAutocomplete.Suggestion) {
         let currentWord = getCurrentWord(from: text)
 
-        // Replace the current word with the suggestion
         if let range = text.range(of: currentWord, options: .backwards) {
             text.replaceSubrange(range, with: suggestion.text)
 
-            // Add space after if it's a keyword
             if suggestion.type == .keyword {
                 text += " "
             }
@@ -145,18 +136,18 @@ struct SuggestionButton: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(suggestion.text)
                         .font(.system(size: 14, weight: .medium, design: .monospaced))
-                        .foregroundColor(.white)
+                        .foregroundColor(.primary)
 
                     if let detail = suggestion.detail {
                         Text(detail)
                             .font(.caption2)
-                            .foregroundColor(.gray)
+                            .foregroundColor(.secondary)
                     }
                 }
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
-            .background(Color.white.opacity(0.1))
+            .background(Color(.tertiarySystemBackground))
             .cornerRadius(8)
         }
     }

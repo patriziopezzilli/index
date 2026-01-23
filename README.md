@@ -1,4 +1,4 @@
-# SQL Client
+# INDEX
 
 A beautiful, minimal SQL client for iOS and iPadOS.
 
@@ -8,7 +8,6 @@ A beautiful, minimal SQL client for iOS and iPadOS.
 - PostgreSQL
 - MySQL
 - SQLite
-- SQL Server
 
 ### Beautiful UI
 - Minimal, clean design
@@ -106,4 +105,4 @@ SQLClient/
 
 ## License
 
-Copyright © 2024 SQL Client. All rights reserved.
+Copyright © 2024 INDEX. All rights reserved.

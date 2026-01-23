@@ -10,18 +10,17 @@ struct SQLTextEditor: UIViewRepresentable {
         let textView = UITextView()
         textView.delegate = context.coordinator
         textView.font = .monospacedSystemFont(ofSize: 16, weight: .regular)
-        textView.backgroundColor = UIColor(white: 0.05, alpha: 1.0)
-        textView.textColor = .white
+        textView.backgroundColor = .systemBackground
+        textView.textColor = .label
         textView.tintColor = .systemBlue
         textView.autocapitalizationType = .none
         textView.autocorrectionType = .no
         textView.textContainerInset = UIEdgeInsets(top: 16, left: 16, bottom: 16, right: 16)
-        textView.keyboardAppearance = .dark
+        textView.keyboardAppearance = .default
 
-        // Add toolbar with Format button
         let toolbar = UIToolbar()
         toolbar.sizeToFit()
-        toolbar.barStyle = .black
+        toolbar.barStyle = .default
 
         let formatButton = UIBarButtonItem(
             title: "Format",
@@ -49,9 +48,7 @@ struct SQLTextEditor: UIViewRepresentable {
         if uiView.text != text {
             let selectedRange = uiView.selectedRange
             uiView.text = text
-            applyS
-
-yntaxHighlighting(to: uiView)
+            applySyntaxHighlighting(to: uiView)
             uiView.selectedRange = selectedRange
         }
     }
@@ -63,13 +60,11 @@ yntaxHighlighting(to: uiView)
     private func applySyntaxHighlighting(to textView: UITextView) {
         let attributedString = NSMutableAttributedString(string: textView.text)
 
-        // Apply default style
         attributedString.addAttributes([
             .font: UIFont.monospacedSystemFont(ofSize: 16, weight: .regular),
-            .foregroundColor: UIColor.white
+            .foregroundColor: UIColor.label
         ], range: NSRange(location: 0, length: attributedString.length))
 
-        // SQL Keywords (blue)
         highlightPattern(
             in: attributedString,
             pattern: "\\b(SELECT|FROM|WHERE|INSERT|INTO|VALUES|UPDATE|SET|DELETE|CREATE|TABLE|DROP|ALTER|JOIN|LEFT|RIGHT|INNER|OUTER|ON|AS|AND|OR|NOT|IN|BETWEEN|LIKE|IS|NULL|ORDER|BY|GROUP|HAVING|LIMIT|OFFSET|UNION|DISTINCT|PRIMARY|KEY|FOREIGN|REFERENCES|AUTO_INCREMENT|AUTOINCREMENT|INTEGER|TEXT|VARCHAR|BOOLEAN|REAL|DECIMAL)\\b",
@@ -77,7 +72,6 @@ yntaxHighlighting(to: uiView)
             options: [.caseInsensitive]
         )
 
-        // SQL Functions (purple)
         highlightPattern(
             in: attributedString,
             pattern: "\\b(COUNT|SUM|AVG|MIN|MAX|ROUND|UPPER|LOWER|LENGTH|TRIM|DATE|NOW|COALESCE)\\s*\\(",
@@ -85,21 +79,18 @@ yntaxHighlighting(to: uiView)
             options: [.caseInsensitive]
         )
 
-        // Strings (green)
         highlightPattern(
             in: attributedString,
             pattern: "'[^']*'|\"[^\"]*\"",
             color: UIColor.systemGreen
         )
 
-        // Numbers (orange)
         highlightPattern(
             in: attributedString,
             pattern: "\\b\\d+(\\.\\d+)?\\b",
             color: UIColor.systemOrange
         )
 
-        // Comments (gray)
         highlightPattern(
             in: attributedString,
             pattern: "--[^\n]*",

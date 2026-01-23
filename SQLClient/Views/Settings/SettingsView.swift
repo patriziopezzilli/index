@@ -7,9 +7,9 @@ struct SettingsView: View {
     @State private var showingClearHistoryAlert = false
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ZStack {
-                Color.black.ignoresSafeArea()
+                Color(.systemBackground).ignoresSafeArea()
 
                 ScrollView {
                     VStack(spacing: 24) {
@@ -17,12 +17,11 @@ struct SettingsView: View {
                             SettingsRow(
                                 icon: "info.circle.fill",
                                 title: "About",
-                                subtitle: "SQL Client v1.0",
+                                subtitle: "INDEX v1.0",
                                 color: .blue
                             )
 
                             Divider()
-                                .background(Color.white.opacity(0.1))
                                 .padding(.leading, 60)
 
                             SettingsRow(
@@ -34,8 +33,49 @@ struct SettingsView: View {
                         }
                         .background(
                             RoundedRectangle(cornerRadius: 16)
-                                .fill(Color.white.opacity(0.05))
+                                .fill(Color(.secondarySystemBackground))
                         )
+
+                        VStack(alignment: .leading, spacing: 16) {
+                            HStack {
+                                Image(systemName: "hand.tap.fill")
+                                    .foregroundColor(.blue)
+                                Text("Appearance")
+                                    .font(.system(size: 14, weight: .bold))
+                                    .foregroundColor(.secondary)
+                            }
+                            .padding(.horizontal)
+
+                            VStack(spacing: 0) {
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text("Display Density")
+                                            .font(.system(size: 16, weight: .medium))
+                                        Text(appState.displayDensity == .compact ? "Desktop friendly" : "Touch friendly")
+                                            .font(.system(size: 14))
+                                            .foregroundColor(.secondary)
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    Picker("Display Density", selection: $appState.displayDensity) {
+                                        ForEach(DisplayDensity.allCases, id: \.self) { density in
+                                            Text(density.rawValue).tag(density)
+                                        }
+                                    }
+                                    .pickerStyle(.segmented)
+                                    .frame(width: 160)
+                                    .onChange(of: appState.displayDensity) { _, newValue in
+                                        UserDefaults.standard.set(newValue.rawValue, forKey: "displayDensity")
+                                    }
+                                }
+                                .padding()
+                            }
+                            .background(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .fill(Color(.secondarySystemBackground))
+                            )
+                        }
 
                         VStack(spacing: 0) {
                             Button(action: {
@@ -51,7 +91,6 @@ struct SettingsView: View {
                             }
 
                             Divider()
-                                .background(Color.white.opacity(0.1))
                                 .padding(.leading, 60)
 
                             Button(action: {
@@ -68,21 +107,21 @@ struct SettingsView: View {
                         }
                         .background(
                             RoundedRectangle(cornerRadius: 16)
-                                .fill(Color.white.opacity(0.05))
+                                .fill(Color(.secondarySystemBackground))
                         )
 
                         VStack(spacing: 12) {
                             Image(systemName: "cylinder.fill")
                                 .font(.system(size: 50))
-                                .foregroundColor(.white.opacity(0.3))
+                                .foregroundColor(.gray.opacity(0.4))
 
-                            Text("SQL Client")
+                            Text("INDEX - SQL Client")
                                 .font(.system(size: 20, weight: .bold))
-                                .foregroundColor(.white)
+                                .foregroundColor(.primary)
 
                             Text("A beautiful, minimal SQL client\nfor iOS and iPadOS")
                                 .font(.system(size: 14))
-                                .foregroundColor(.white.opacity(0.5))
+                                .foregroundColor(.secondary)
                                 .multilineTextAlignment(.center)
                         }
                         .padding(.top, 40)
@@ -120,7 +159,7 @@ struct SettingsView: View {
         appState.hasCompletedOnboarding = false
         appState.connections.removeAll()
         databaseService.queryHistory.removeAll()
-        databaseService.disconnect()
+        databaseService.disconnectAll()
     }
 }
 
@@ -135,7 +174,7 @@ struct SettingsRow: View {
         HStack(spacing: 16) {
             ZStack {
                 Circle()
-                    .fill(color.opacity(0.2))
+                    .fill(color.opacity(0.15))
                     .frame(width: 44, height: 44)
 
                 Image(systemName: icon)
@@ -146,11 +185,11 @@ struct SettingsRow: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
                     .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(.white)
+                    .foregroundColor(.primary)
 
                 Text(subtitle)
                     .font(.system(size: 14))
-                    .foregroundColor(.white.opacity(0.5))
+                    .foregroundColor(.secondary)
             }
 
             Spacer()
@@ -158,7 +197,7 @@ struct SettingsRow: View {
             if showChevron {
                 Image(systemName: "chevron.right")
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(.white.opacity(0.3))
+                    .foregroundColor(.gray.opacity(0.5))
             }
         }
         .padding()

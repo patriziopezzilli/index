@@ -8,14 +8,14 @@ struct OnboardingView: View {
     private let pages: [OnboardingPage] = [
         OnboardingPage(
             icon: "cylinder.fill",
-            title: "Welcome to SQL Client",
+            title: "Welcome to INDEX",
             description: "A powerful, beautiful SQL client designed for iPad and iPhone. Connect to multiple databases with ease.",
             color: .blue
         ),
         OnboardingPage(
             icon: "bolt.fill",
             title: "Multiple Database Support",
-            description: "Connect to PostgreSQL, MySQL, SQLite, and SQL Server. All your databases in one place.",
+            description: "Connect to PostgreSQL, MySQL, and SQLite. All your databases in one place.",
             color: .orange
         ),
         OnboardingPage(
@@ -34,7 +34,7 @@ struct OnboardingView: View {
 
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            Color(.systemBackground).ignoresSafeArea()
 
             VStack(spacing: 0) {
                 TabView(selection: $currentPage) {
@@ -54,7 +54,7 @@ struct OnboardingView: View {
                     HStack(spacing: 8) {
                         ForEach(0..<pages.count, id: \.self) { index in
                             Circle()
-                                .fill(currentPage == index ? pages[index].color : Color.white.opacity(0.3))
+                                .fill(currentPage == index ? pages[index].color : Color.gray.opacity(0.3))
                                 .frame(width: currentPage == index ? 24 : 8, height: 8)
                                 .animation(.spring(response: 0.5, dampingFraction: 0.7), value: currentPage)
                         }
@@ -69,12 +69,12 @@ struct OnboardingView: View {
                         }) {
                             Text("Get Started")
                                 .font(.system(size: 18, weight: .semibold))
-                                .foregroundColor(.black)
+                                .foregroundColor(.white)
                                 .frame(maxWidth: .infinity)
                                 .frame(height: 56)
                                 .background(
                                     RoundedRectangle(cornerRadius: 16)
-                                        .fill(.white)
+                                        .fill(Color.blue)
                                 )
                         }
                         .padding(.horizontal, 40)
@@ -90,12 +90,12 @@ struct OnboardingView: View {
                                     .font(.system(size: 18, weight: .semibold))
                                 Image(systemName: "arrow.right")
                             }
-                            .foregroundColor(.white)
+                            .foregroundColor(.primary)
                             .frame(maxWidth: .infinity)
                             .frame(height: 56)
                             .background(
                                 RoundedRectangle(cornerRadius: 16)
-                                    .fill(Color.white.opacity(0.1))
+                                    .fill(Color(.secondarySystemBackground))
                             )
                         }
                         .padding(.horizontal, 40)
@@ -131,7 +131,7 @@ struct OnboardingPageView: View {
 
             ZStack {
                 Circle()
-                    .fill(page.color.opacity(0.2))
+                    .fill(page.color.opacity(0.15))
                     .frame(width: 200, height: 200)
                     .blur(radius: 40)
                     .scaleEffect(isAnimating ? 1 : 0.5)
@@ -146,14 +146,14 @@ struct OnboardingPageView: View {
             VStack(spacing: 20) {
                 Text(page.title)
                     .font(.system(size: 32, weight: .bold))
-                    .foregroundColor(.white)
+                    .foregroundColor(.primary)
                     .multilineTextAlignment(.center)
                     .opacity(isAnimating ? 1 : 0)
                     .offset(y: isAnimating ? 0 : 20)
 
                 Text(page.description)
                     .font(.system(size: 17, weight: .regular))
-                    .foregroundColor(.white.opacity(0.7))
+                    .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 40)
                     .opacity(isAnimating ? 1 : 0)

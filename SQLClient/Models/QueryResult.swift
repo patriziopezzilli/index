@@ -4,8 +4,13 @@ struct QueryResult: Identifiable {
     let id = UUID()
     var columns: [String]
     var rows: [[String]]
+    var totalRows: Int?
+    var page: Int = 1
+    var pageSize: Int = 100
     var rowsAffected: Int?
     var executionTime: TimeInterval
+    var tableName: String?
+    var primaryKeyColumn: String?
     var error: String?
 
     var isSuccess: Bool {

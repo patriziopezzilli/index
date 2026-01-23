@@ -2,15 +2,14 @@ import Foundation
 import Combine
 
 class DatabaseService: ObservableObject {
-    @Published var currentConnection: DatabaseConnection?
-    @Published var isConnected = false
+    @Published var activeWorkspaces: [WorkspaceTab] = []
+    @Published var selectedWorkspaceIndex: Int = 0
+    
     @Published var queryHistory: [QueryHistory] = []
     @Published var savedQueries: [SavedQuery] = []
-    @Published var currentSchema: DatabaseSchema?
     @Published var savedConnections: [DatabaseConnection] = []
 
     private var cancellables = Set<AnyCancellable>()
-    private var currentDriver: DatabaseDriver?
     private let keychain = KeychainService.shared
 
     init() {
@@ -19,7 +18,24 @@ class DatabaseService: ObservableObject {
         loadConnections()
     }
 
+    var currentWorkspace: WorkspaceTab? {
+        guard !activeWorkspaces.isEmpty, selectedWorkspaceIndex < activeWorkspaces.count else { return nil }
+        return activeWorkspaces[selectedWorkspaceIndex]
+    }
+
+    var isConnected: Bool {
+        !activeWorkspaces.isEmpty
+    }
+
     func connect(to connection: DatabaseConnection) async throws {
+        // If already connected to this connection ID, just switch to it
+        if let index = activeWorkspaces.firstIndex(where: { $0.connection.id == connection.id }) {
+            await MainActor.run {
+                self.selectedWorkspaceIndex = index
+            }
+            return
+        }
+
         // Create appropriate driver
         let driver = DatabaseDriverFactory.createDriver(for: connection)
 
@@ -34,54 +50,76 @@ class DatabaseService: ObservableObject {
             }
         }
 
+        // Create new workspace tab
+        let newWorkspace = WorkspaceTab(connection: connection, driver: driver)
+
         // Update state
         await MainActor.run {
-            self.currentDriver = driver
-            self.currentConnection = connection
-            self.isConnected = true
-            self.currentSchema = nil // Reset schema on new connection
+            self.activeWorkspaces.append(newWorkspace)
+            self.selectedWorkspaceIndex = self.activeWorkspaces.count - 1
         }
     }
 
-    func disconnect() {
-        try? currentDriver?.disconnect()
-        currentDriver = nil
-        currentConnection = nil
-        isConnected = false
-        currentSchema = nil
+    func disconnect(workspace: WorkspaceTab? = nil) {
+        let wsToClose = workspace ?? currentWorkspace
+        guard let ws = wsToClose else { return }
+        
+        try? ws.driver.disconnect()
+        
+        if let index = activeWorkspaces.firstIndex(where: { $0.id == ws.id }) {
+            activeWorkspaces.remove(at: index)
+            if selectedWorkspaceIndex >= activeWorkspaces.count && !activeWorkspaces.isEmpty {
+                selectedWorkspaceIndex = activeWorkspaces.count - 1
+            }
+        }
     }
 
-    func executeQuery(_ query: String) async -> QueryResult {
-        guard let driver = currentDriver else {
-            await addToHistory(query: query, executionTime: 0, success: false)
-            return QueryResult(
-                columns: [],
-                rows: [],
-                rowsAffected: nil,
-                executionTime: 0,
-                error: "Not connected to database"
-            )
+    func disconnectAll() {
+        for ws in activeWorkspaces {
+            try? ws.driver.disconnect()
         }
+        activeWorkspaces.removeAll()
+        selectedWorkspaceIndex = 0
+    }
+
+    func executeQuery(_ query: String, in workspace: WorkspaceTab? = nil) async -> QueryResult {
+        guard let ws = workspace ?? currentWorkspace else {
+            return QueryResult(columns: [], rows: [], rowsAffected: nil, executionTime: 0, error: "No active workspace select")
+        }
+
+        let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+
+        // Track transaction state
+        let isTransactionCommand = trimmedQuery.hasPrefix("begin") ||
+                                   trimmedQuery.hasPrefix("commit") ||
+                                   trimmedQuery.hasPrefix("rollback")
 
         do {
-            let result = try await driver.execute(query)
+            let result = try await ws.driver.execute(query)
             await addToHistory(query: query, executionTime: result.executionTime, success: true)
+
+            // Update transaction state based on query
+            await MainActor.run {
+                if trimmedQuery.hasPrefix("begin") {
+                    ws.transactionState = .active
+                    ws.transactionQueryCount = 0
+                } else if trimmedQuery.hasPrefix("commit") || trimmedQuery.hasPrefix("rollback") {
+                    ws.transactionState = .none
+                    ws.transactionQueryCount = 0
+                } else if ws.isInTransaction && !isTransactionCommand {
+                    ws.transactionQueryCount += 1
+                }
+            }
+
             return result
         } catch {
             await addToHistory(query: query, executionTime: 0, success: false)
-            return QueryResult(
-                columns: [],
-                rows: [],
-                rowsAffected: nil,
-                executionTime: 0,
-                error: error.localizedDescription
-            )
+            return QueryResult(columns: [], rows: [], rowsAffected: nil, executionTime: 0, error: error.localizedDescription)
         }
     }
 
     func testConnection(_ connection: DatabaseConnection) async -> Bool {
         let driver = DatabaseDriverFactory.createDriver(for: connection)
-
         do {
             try await driver.connect()
             try driver.disconnect()
@@ -117,17 +155,46 @@ class DatabaseService: ObservableObject {
 
     // MARK: - Schema Browser
 
-    func loadSchema() async {
-        guard isConnected, let driver = currentDriver else { return }
+    func loadSchema(for workspace: WorkspaceTab? = nil) async {
+        guard let ws = workspace ?? currentWorkspace else { return }
 
         do {
-            let schema = try await driver.loadSchema()
+            let schema = try await ws.driver.loadSchema()
             await MainActor.run {
-                self.currentSchema = schema
+                ws.schema = schema
             }
         } catch {
             print("Failed to load schema: \(error)")
         }
+    }
+
+    func fetchTableData(tableName: String, page: Int = 1, pageSize: Int = 100, in workspace: WorkspaceTab? = nil) async -> QueryResult {
+        guard let ws = workspace ?? currentWorkspace else {
+            return QueryResult(columns: [], rows: [], rowsAffected: nil, executionTime: 0, error: "No active workspace")
+        }
+
+        do {
+            var result = try await ws.driver.fetchTableData(tableName: tableName, page: page, pageSize: pageSize)
+            result.tableName = tableName
+            result.primaryKeyColumn = ws.schema?.tables.first(where: { $0.name == tableName })?.columns.first(where: { $0.isPrimaryKey })?.name
+            return result
+        } catch {
+            return QueryResult(columns: [], rows: [], rowsAffected: nil, executionTime: 0, error: error.localizedDescription)
+        }
+    }
+
+    func updateCell(tableName: String, columnName: String, newValue: String, primaryKeyColumn: String, primaryKeyValue: String, in workspace: WorkspaceTab? = nil) async throws {
+        guard let ws = workspace ?? currentWorkspace else {
+            throw DatabaseDriverError.notConnected
+        }
+        
+        try await ws.driver.updateCell(
+            tableName: tableName,
+            columnName: columnName,
+            newValue: newValue,
+            primaryKeyColumn: primaryKeyColumn,
+            primaryKeyValue: primaryKeyValue
+        )
     }
 
     // MARK: - Saved Queries
@@ -171,18 +238,14 @@ class DatabaseService: ObservableObject {
     // MARK: - Connection Management
 
     func saveConnection(_ connection: DatabaseConnection) {
-        // Save password to Keychain
         if !connection.password.isEmpty {
             try? keychain.saveConnectionPassword(connection.password, connectionId: connection.id)
         }
 
-        // Save connection without password
         var conn = connection
         if let index = savedConnections.firstIndex(where: { $0.id == connection.id }) {
-            // Update existing
             savedConnections[index] = conn
         } else {
-            // Add new
             savedConnections.append(conn)
         }
 
@@ -190,10 +253,7 @@ class DatabaseService: ObservableObject {
     }
 
     func deleteConnection(_ connection: DatabaseConnection) {
-        // Delete password from Keychain
         try? keychain.deleteConnectionPassword(connectionId: connection.id)
-
-        // Delete connection
         savedConnections.removeAll { $0.id == connection.id }
         saveConnections()
     }
@@ -209,7 +269,6 @@ class DatabaseService: ObservableObject {
         guard let storable = savedConnections.first(where: { $0.id == id })?.safeForStorage else {
             return nil
         }
-
         let password = keychain.getConnectionPassword(connectionId: id) ?? ""
         return DatabaseConnection.fromStorable(storable, password: password)
     }
@@ -217,7 +276,6 @@ class DatabaseService: ObservableObject {
     private func loadConnections() {
         if let data = UserDefaults.standard.data(forKey: "savedConnections"),
            let decoded = try? JSONDecoder().decode([StorableConnection].self, from: data) {
-            // Convert StorableConnection to DatabaseConnection with passwords from Keychain
             savedConnections = decoded.map { storable in
                 let password = keychain.getConnectionPassword(connectionId: storable.id) ?? ""
                 return DatabaseConnection.fromStorable(storable, password: password)
@@ -226,9 +284,7 @@ class DatabaseService: ObservableObject {
     }
 
     private func saveConnections() {
-        // Convert to StorableConnection (without passwords)
         let storableConnections = savedConnections.map { $0.safeForStorage }
-
         if let encoded = try? JSONEncoder().encode(storableConnections) {
             UserDefaults.standard.set(encoded, forKey: "savedConnections")
         }

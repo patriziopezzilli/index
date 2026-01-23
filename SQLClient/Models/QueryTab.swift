@@ -6,12 +6,20 @@ class QueryTab: Identifiable, ObservableObject {
     @Published var query: String
     @Published var result: QueryResult?
     @Published var isExecuting: Bool = false
+    
+    var executionTask: Task<Void, Never>?
 
     init(id: UUID = UUID(), name: String = "New Query", query: String = "") {
         self.id = id
         self.name = name
         self.query = query
         self.result = nil
+    }
+
+    func cancelQuery() {
+        executionTask?.cancel()
+        executionTask = nil
+        isExecuting = false
     }
 
     func updateName(from query: String) {

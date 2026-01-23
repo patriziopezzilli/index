@@ -37,24 +37,22 @@ struct QueryHistoryView: View {
     }
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ZStack {
-                Color.black.ignoresSafeArea()
+                Color(.systemBackground).ignoresSafeArea()
 
                 VStack(spacing: 0) {
-                    // Search Bar
                     HStack {
                         Image(systemName: "magnifyingglass")
                             .foregroundColor(.gray)
                         TextField("Search queries...", text: $searchText)
-                            .foregroundColor(.white)
+                            .foregroundColor(.primary)
                     }
                     .padding()
-                    .background(Color.white.opacity(0.05))
+                    .background(Color(.secondarySystemBackground))
                     .cornerRadius(12)
                     .padding()
 
-                    // Filter Options
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 12) {
                             ForEach(FilterOption.allCases, id: \.self) { option in
@@ -73,7 +71,6 @@ struct QueryHistoryView: View {
                     }
                     .padding(.bottom)
 
-                    // History List
                     if filteredHistory.isEmpty {
                         EmptyHistoryView(filterOption: filterOption)
                     } else {
@@ -110,7 +107,7 @@ struct QueryHistoryView: View {
                         }
                     } label: {
                         Image(systemName: "ellipsis.circle")
-                            .foregroundColor(.white)
+                            .foregroundColor(.blue)
                     }
                 }
             }
@@ -126,13 +123,11 @@ struct QueryHistoryView: View {
                 }
             }
         }
-        .navigationViewStyle(.stack)
     }
 
     private var filteredHistory: [QueryHistory] {
         var history = dbService.queryHistory
 
-        // Apply filter
         switch filterOption {
         case .all:
             break
@@ -142,7 +137,6 @@ struct QueryHistoryView: View {
             history = history.filter { !$0.success }
         }
 
-        // Apply search
         if !searchText.isEmpty {
             history = history.filter {
                 $0.query.localizedCaseInsensitiveContains(searchText)
@@ -168,7 +162,6 @@ struct QueryHistoryView: View {
     }
 
     private func exportHistory() {
-        // TODO: Implement export functionality
     }
 }
 
@@ -192,12 +185,12 @@ struct FilterButton: View {
                         .font(.caption2)
                 }
             }
-            .foregroundColor(isSelected ? .white : .gray)
+            .foregroundColor(isSelected ? option.color : .secondary)
             .padding(.horizontal, 16)
             .padding(.vertical, 10)
             .background(
                 RoundedRectangle(cornerRadius: 10)
-                    .fill(isSelected ? option.color.opacity(0.3) : Color.white.opacity(0.05))
+                    .fill(isSelected ? option.color.opacity(0.15) : Color(.secondarySystemBackground))
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 10)
@@ -215,10 +208,9 @@ struct QueryHistoryRow: View {
     var body: some View {
         Button(action: onShowDetail) {
             HStack(spacing: 12) {
-                // Status indicator
                 ZStack {
                     Circle()
-                        .fill(item.success ? Color.green.opacity(0.2) : Color.red.opacity(0.2))
+                        .fill(item.success ? Color.green.opacity(0.15) : Color.red.opacity(0.15))
                         .frame(width: 40, height: 40)
 
                     Image(systemName: item.success ? "checkmark" : "xmark")
@@ -226,27 +218,25 @@ struct QueryHistoryRow: View {
                         .font(.system(size: 16, weight: .bold))
                 }
 
-                // Query info
                 VStack(alignment: .leading, spacing: 6) {
                     Text(item.query.prefix(80) + (item.query.count > 80 ? "..." : ""))
                         .font(.system(size: 14, weight: .medium, design: .monospaced))
-                        .foregroundColor(.white)
+                        .foregroundColor(.primary)
                         .lineLimit(2)
 
                     HStack(spacing: 12) {
                         Label(formatDate(item.timestamp), systemImage: "clock")
                             .font(.caption)
-                            .foregroundColor(.gray)
+                            .foregroundColor(.secondary)
 
                         Label(String(format: "%.2fs", item.executionTime), systemImage: "timer")
                             .font(.caption)
-                            .foregroundColor(.gray)
+                            .foregroundColor(.secondary)
                     }
                 }
 
                 Spacer()
 
-                // Re-run button
                 Button(action: onRerun) {
                     Image(systemName: "play.circle.fill")
                         .foregroundColor(.blue)
@@ -255,7 +245,7 @@ struct QueryHistoryRow: View {
                 .buttonStyle(PlainButtonStyle())
             }
             .padding()
-            .background(Color.white.opacity(0.05))
+            .background(Color(.secondarySystemBackground))
             .cornerRadius(12)
         }
         .buttonStyle(PlainButtonStyle())
@@ -288,15 +278,15 @@ struct EmptyHistoryView: View {
         VStack(spacing: 16) {
             Image(systemName: filterOption.icon)
                 .font(.system(size: 60))
-                .foregroundColor(.gray)
+                .foregroundColor(.gray.opacity(0.5))
 
             Text("No \(filterOption.rawValue) Queries")
                 .font(.headline)
-                .foregroundColor(.white)
+                .foregroundColor(.primary)
 
             Text(emptyMessage)
                 .font(.subheadline)
-                .foregroundColor(.gray)
+                .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 40)
         }
@@ -322,85 +312,79 @@ struct QueryDetailView: View {
     @Environment(\.dismiss) var dismiss
 
     var body: some View {
-        NavigationView {
-            ZStack {
-                Color.black.ignoresSafeArea()
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 24) {
+                    HStack {
+                        Image(systemName: queryHistory.success ? "checkmark.circle.fill" : "xmark.circle.fill")
+                            .foregroundColor(queryHistory.success ? .green : .red)
+                            .font(.title2)
 
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 24) {
-                        // Status
-                        HStack {
-                            Image(systemName: queryHistory.success ? "checkmark.circle.fill" : "xmark.circle.fill")
-                                .foregroundColor(queryHistory.success ? .green : .red)
-                                .font(.title2)
-
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(queryHistory.success ? "Successful" : "Failed")
-                                    .font(.headline)
-                                    .foregroundColor(.white)
-
-                                Text(formatFullDate(queryHistory.timestamp))
-                                    .font(.caption)
-                                    .foregroundColor(.gray)
-                            }
-
-                            Spacer()
-
-                            Text(String(format: "%.2fs", queryHistory.executionTime))
-                                .font(.system(size: 16, weight: .medium, design: .monospaced))
-                                .foregroundColor(.blue)
-                        }
-                        .padding()
-                        .background(Color.white.opacity(0.05))
-                        .cornerRadius(12)
-
-                        // Query
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("Query")
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(queryHistory.success ? "Successful" : "Failed")
                                 .font(.headline)
-                                .foregroundColor(.white)
+                                .foregroundColor(.primary)
 
-                            Text(queryHistory.query)
-                                .font(.system(size: 14, weight: .regular, design: .monospaced))
-                                .foregroundColor(.white)
-                                .padding()
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .background(Color.white.opacity(0.05))
-                                .cornerRadius(12)
+                            Text(formatFullDate(queryHistory.timestamp))
+                                .font(.caption)
+                                .foregroundColor(.secondary)
                         }
 
-                        // Actions
-                        VStack(spacing: 12) {
-                            Button(action: onRerun) {
-                                HStack {
-                                    Image(systemName: "play.fill")
-                                    Text("Re-run Query")
-                                }
-                                .font(.system(size: 16, weight: .semibold))
-                                .foregroundColor(.white)
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 50)
-                                .background(Color.blue)
-                                .cornerRadius(12)
-                            }
+                        Spacer()
 
-                            Button(action: copyQuery) {
-                                HStack {
-                                    Image(systemName: "doc.on.doc")
-                                    Text("Copy Query")
-                                }
-                                .font(.system(size: 16, weight: .medium))
-                                .foregroundColor(.white)
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 50)
-                                .background(Color.white.opacity(0.1))
-                                .cornerRadius(12)
-                            }
-                        }
+                        Text(String(format: "%.2fs", queryHistory.executionTime))
+                            .font(.system(size: 16, weight: .medium, design: .monospaced))
+                            .foregroundColor(.blue)
                     }
                     .padding()
+                    .background(Color(.secondarySystemBackground))
+                    .cornerRadius(12)
+
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Query")
+                            .font(.headline)
+                            .foregroundColor(.primary)
+
+                        Text(queryHistory.query)
+                            .font(.system(size: 14, weight: .regular, design: .monospaced))
+                            .foregroundColor(.primary)
+                            .padding()
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(Color(.secondarySystemBackground))
+                            .cornerRadius(12)
+                    }
+
+                    VStack(spacing: 12) {
+                        Button(action: onRerun) {
+                            HStack {
+                                Image(systemName: "play.fill")
+                                Text("Re-run Query")
+                            }
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 50)
+                            .background(Color.blue)
+                            .cornerRadius(12)
+                        }
+
+                        Button(action: copyQuery) {
+                            HStack {
+                                Image(systemName: "doc.on.doc")
+                                Text("Copy Query")
+                            }
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.primary)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 50)
+                            .background(Color(.secondarySystemBackground))
+                            .cornerRadius(12)
+                        }
+                    }
                 }
+                .padding()
             }
+            .background(Color(.systemBackground))
             .navigationTitle("Query Details")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -408,7 +392,6 @@ struct QueryDetailView: View {
                     Button("Done") {
                         dismiss()
                     }
-                    .foregroundColor(.white)
                 }
             }
         }

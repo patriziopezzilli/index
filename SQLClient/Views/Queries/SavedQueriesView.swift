@@ -30,12 +30,12 @@ struct SavedQueriesView: View {
     }
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ZStack {
-                Color.black.ignoresSafeArea()
+                Color(.systemBackground).ignoresSafeArea()
 
                 VStack(spacing: 0) {
-                    SearchBar(text: $searchText)
+                    BrowserSearchBar(text: $searchText)
                         .padding()
 
                     CategoryPicker(categories: categories, selected: $selectedCategory)
@@ -71,7 +71,7 @@ struct SavedQueriesView: View {
             .navigationTitle("Saved Queries")
             .navigationBarTitleDisplayMode(.large)
             .sheet(item: $selectedQuery) { query in
-                QueryDetailView(query: query, loadQuery: $loadQuery)
+                SavedQueryDetailView(query: query, loadQuery: $loadQuery)
             }
         }
     }
@@ -92,12 +92,12 @@ struct CategoryPicker: View {
                     }) {
                         Text(category)
                             .font(.system(size: 14, weight: .medium))
-                            .foregroundColor(selected == category ? .black : .white)
+                            .foregroundColor(selected == category ? .white : .primary)
                             .padding(.horizontal, 16)
                             .padding(.vertical, 8)
                             .background(
                                 Capsule()
-                                    .fill(selected == category ? .white : Color.white.opacity(0.1))
+                                    .fill(selected == category ? Color.blue : Color(.secondarySystemBackground))
                             )
                     }
                 }
@@ -115,17 +115,17 @@ struct EmptyQueriesView: View {
 
             Image(systemName: hasQueries ? "magnifyingglass" : "tray")
                 .font(.system(size: 80, weight: .thin))
-                .foregroundColor(.white.opacity(0.3))
+                .foregroundColor(.gray.opacity(0.4))
 
             VStack(spacing: 12) {
                 Text(hasQueries ? "No Results" : "No Saved Queries")
                     .font(.title2)
                     .fontWeight(.bold)
-                    .foregroundColor(.white)
+                    .foregroundColor(.primary)
 
                 Text(hasQueries ? "Try adjusting your search or filter" : "Save your frequently used queries for quick access")
                     .font(.body)
-                    .foregroundColor(.white.opacity(0.6))
+                    .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
             }
 
@@ -147,7 +147,7 @@ struct SavedQueryRow: View {
                 HStack(spacing: 12) {
                     ZStack {
                         Circle()
-                            .fill(categoryColor.opacity(0.2))
+                            .fill(categoryColor.opacity(0.15))
                             .frame(width: 40, height: 40)
 
                         Image(systemName: query.categoryIcon)
@@ -158,11 +158,11 @@ struct SavedQueryRow: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(query.name)
                             .font(.system(size: 16, weight: .semibold))
-                            .foregroundColor(.white)
+                            .foregroundColor(.primary)
 
                         Text(query.category)
                             .font(.system(size: 13))
-                            .foregroundColor(.white.opacity(0.6))
+                            .foregroundColor(.secondary)
                     }
 
                     Spacer()
@@ -170,7 +170,7 @@ struct SavedQueryRow: View {
                     VStack(alignment: .trailing, spacing: 4) {
                         Text(query.lastModified, style: .relative)
                             .font(.system(size: 12))
-                            .foregroundColor(.white.opacity(0.5))
+                            .foregroundColor(.secondary)
 
                         Button(action: onLoad) {
                             HStack(spacing: 4) {
@@ -183,7 +183,7 @@ struct SavedQueryRow: View {
                             .padding(.vertical, 6)
                             .background(
                                 Capsule()
-                                    .fill(Color.blue.opacity(0.2))
+                                    .fill(Color.blue.opacity(0.15))
                             )
                         }
                         .buttonStyle(PlainButtonStyle())
@@ -192,19 +192,19 @@ struct SavedQueryRow: View {
 
                 Text(query.query)
                     .font(.system(size: 13, design: .monospaced))
-                    .foregroundColor(.white.opacity(0.7))
+                    .foregroundColor(.secondary)
                     .lineLimit(2)
                     .padding(12)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(
                         RoundedRectangle(cornerRadius: 8)
-                            .fill(Color.white.opacity(0.05))
+                            .fill(Color(.tertiarySystemBackground))
                     )
             }
             .padding()
             .background(
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.white.opacity(0.05))
+                    .fill(Color(.secondarySystemBackground))
             )
             .contextMenu {
                 Button(action: onLoad) {
@@ -231,103 +231,100 @@ struct SavedQueryRow: View {
     }
 }
 
-struct QueryDetailView: View {
+struct SavedQueryDetailView: View {
     let query: SavedQuery
     @Binding var loadQuery: String?
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var databaseService: DatabaseService
 
     var body: some View {
-        NavigationView {
-            ZStack {
-                Color.black.ignoresSafeArea()
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 24) {
+                    HStack(spacing: 16) {
+                        ZStack {
+                            Circle()
+                                .fill(categoryColor.opacity(0.15))
+                                .frame(width: 60, height: 60)
 
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 24) {
-                        HStack(spacing: 16) {
-                            ZStack {
-                                Circle()
-                                    .fill(categoryColor.opacity(0.2))
-                                    .frame(width: 60, height: 60)
-
-                                Image(systemName: query.categoryIcon)
-                                    .font(.system(size: 28))
-                                    .foregroundColor(categoryColor)
-                            }
-
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(query.name)
-                                    .font(.title2)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(.white)
-
-                                Text(query.category)
-                                    .font(.system(size: 15))
-                                    .foregroundColor(.white.opacity(0.6))
-                            }
-
-                            Spacer()
+                            Image(systemName: query.categoryIcon)
+                                .font(.system(size: 28))
+                                .foregroundColor(categoryColor)
                         }
 
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Query")
-                                .font(.system(size: 14, weight: .medium))
-                                .foregroundColor(.white.opacity(0.7))
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(query.name)
+                                .font(.title2)
+                                .fontWeight(.bold)
+                                .foregroundColor(.primary)
 
-                            Text(query.query)
-                                .font(.system(size: 14, design: .monospaced))
-                                .foregroundColor(.white)
-                                .padding()
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .fill(Color.white.opacity(0.05))
-                                )
+                            Text(query.category)
+                                .font(.system(size: 15))
+                                .foregroundColor(.secondary)
                         }
 
-                        HStack(spacing: 24) {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("Created")
-                                    .font(.system(size: 13))
-                                    .foregroundColor(.white.opacity(0.5))
+                        Spacer()
+                    }
 
-                                Text(query.createdAt, style: .date)
-                                    .font(.system(size: 14, weight: .medium))
-                                    .foregroundColor(.white)
-                            }
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Query")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.secondary)
 
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("Last Modified")
-                                    .font(.system(size: 13))
-                                    .foregroundColor(.white.opacity(0.5))
-
-                                Text(query.lastModified, style: .relative)
-                                    .font(.system(size: 14, weight: .medium))
-                                    .foregroundColor(.white)
-                            }
-                        }
-
-                        Button(action: {
-                            loadQuery = query.query
-                            dismiss()
-                        }) {
-                            HStack(spacing: 8) {
-                                Image(systemName: "arrow.down.left")
-                                Text("Load in Editor")
-                            }
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundColor(.black)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 50)
+                        Text(query.query)
+                            .font(.system(size: 14, design: .monospaced))
+                            .foregroundColor(.primary)
+                            .padding()
+                            .frame(maxWidth: .infinity, alignment: .leading)
                             .background(
                                 RoundedRectangle(cornerRadius: 12)
-                                    .fill(.white)
+                                    .fill(Color(.secondarySystemBackground))
                             )
+                    }
+
+                    HStack(spacing: 24) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Created")
+                                .font(.system(size: 13))
+                                .foregroundColor(.secondary)
+
+                            Text(query.createdAt, style: .date)
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(.primary)
+                        }
+
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Last Modified")
+                                .font(.system(size: 13))
+                                .foregroundColor(.secondary)
+
+                            Text(query.lastModified, style: .relative)
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(.primary)
                         }
                     }
-                    .padding()
+
+                    Button(action: {
+                        loadQuery = query.query
+                        dismiss()
+                    }) {
+                        HStack(spacing: 8) {
+                            Image(systemName: "arrow.down.left")
+                            Text("Load in Editor")
+                        }
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 50)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color.blue)
+                        )
+                    }
                 }
+                .padding()
             }
+            .background(Color(.systemBackground))
             .navigationTitle("Query Details")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -335,7 +332,6 @@ struct QueryDetailView: View {
                     Button("Done") {
                         dismiss()
                     }
-                    .foregroundColor(.white)
                 }
 
                 ToolbarItem(placement: .navigationBarTrailing) {

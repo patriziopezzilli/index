@@ -10,6 +10,8 @@ protocol DatabaseDriver {
     func disconnect() throws
     func execute(_ query: String) async throws -> QueryResult
     func loadSchema() async throws -> DatabaseSchema
+    func fetchTableData(tableName: String, page: Int, pageSize: Int) async throws -> QueryResult
+    func updateCell(tableName: String, columnName: String, newValue: String, primaryKeyColumn: String, primaryKeyValue: String) async throws
 }
 
 // MARK: - Driver Errors
@@ -44,76 +46,10 @@ class DatabaseDriverFactory {
         switch connection.type {
         case .sqlite:
             return SQLiteDriver(connection: connection)
-        case .postgresql, .mysql, .sqlserver:
-            return MockDriver(connection: connection)
+        case .postgresql:
+            return PostgresDriver(connection: connection)
+        case .mysql:
+            return MySQLDriver(connection: connection)
         }
-    }
-}
-
-// MARK: - Mock Driver (for unsupported databases)
-
-class MockDriver: DatabaseDriver {
-    let connection: DatabaseConnection
-    private(set) var isConnected = false
-
-    init(connection: DatabaseConnection) {
-        self.connection = connection
-    }
-
-    func connect() async throws {
-        try await Task.sleep(nanoseconds: 500_000_000)
-        isConnected = true
-    }
-
-    func disconnect() throws {
-        isConnected = false
-    }
-
-    func execute(_ query: String) async throws -> QueryResult {
-        try await Task.sleep(nanoseconds: 300_000_000)
-
-        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-
-        if trimmed.hasPrefix("select") {
-            return QueryResult(
-                columns: ["id", "name", "value"],
-                rows: [
-                    ["1", "Mock Data", "123"],
-                    ["2", "Test Entry", "456"]
-                ],
-                rowsAffected: nil,
-                executionTime: 0.3
-            )
-        } else if trimmed.hasPrefix("insert") || trimmed.hasPrefix("update") || trimmed.hasPrefix("delete") {
-            return QueryResult(
-                columns: [],
-                rows: [],
-                rowsAffected: 1,
-                executionTime: 0.3
-            )
-        } else {
-            return QueryResult(
-                columns: [],
-                rows: [],
-                rowsAffected: 0,
-                executionTime: 0.3
-            )
-        }
-    }
-
-    func loadSchema() async throws -> DatabaseSchema {
-        return DatabaseSchema(
-            name: connection.database,
-            tables: [
-                TableSchema(
-                    name: "mock_table",
-                    columns: [
-                        ColumnSchema(name: "id", type: "INTEGER", nullable: false, isPrimaryKey: true, defaultValue: nil),
-                        ColumnSchema(name: "name", type: "TEXT", nullable: true, isPrimaryKey: false, defaultValue: nil)
-                    ],
-                    rowCount: 0
-                )
-            ]
-        )
     }
 }

@@ -15,12 +15,12 @@ struct HistoryView: View {
     }
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ZStack {
-                Color.black.ignoresSafeArea()
+                Color(.systemBackground).ignoresSafeArea()
 
                 if databaseService.queryHistory.isEmpty {
-                    EmptyHistoryView()
+                    EmptyHistoryPlaceholderView()
                 } else {
                     ScrollView {
                         LazyVStack(spacing: 12) {
@@ -39,22 +39,22 @@ struct HistoryView: View {
     }
 }
 
-struct EmptyHistoryView: View {
+struct EmptyHistoryPlaceholderView: View {
     var body: some View {
         VStack(spacing: 24) {
             Image(systemName: "clock")
                 .font(.system(size: 80, weight: .thin))
-                .foregroundColor(.white.opacity(0.3))
+                .foregroundColor(.gray.opacity(0.4))
 
             VStack(spacing: 12) {
                 Text("No Query History")
                     .font(.title2)
                     .fontWeight(.bold)
-                    .foregroundColor(.white)
+                    .foregroundColor(.primary)
 
                 Text("Your executed queries will appear here")
                     .font(.body)
-                    .foregroundColor(.white.opacity(0.6))
+                    .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
             }
         }
@@ -73,40 +73,40 @@ struct HistoryItemCard: View {
 
                 Text(item.timestamp, style: .time)
                     .font(.system(size: 13))
-                    .foregroundColor(.white.opacity(0.5))
+                    .foregroundColor(.secondary)
 
                 Text(item.timestamp, style: .date)
                     .font(.system(size: 13))
-                    .foregroundColor(.white.opacity(0.5))
+                    .foregroundColor(.secondary)
 
                 Spacer()
 
                 Text("\(String(format: "%.2f", item.executionTime))s")
                     .font(.system(size: 13, weight: .medium))
-                    .foregroundColor(.white.opacity(0.6))
+                    .foregroundColor(.secondary)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
                     .background(
                         Capsule()
-                            .fill(Color.white.opacity(0.1))
+                            .fill(Color(.tertiarySystemBackground))
                     )
             }
 
             Text(item.query)
                 .font(.system(size: 14, design: .monospaced))
-                .foregroundColor(.white)
+                .foregroundColor(.primary)
                 .lineLimit(3)
                 .padding(12)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(
                     RoundedRectangle(cornerRadius: 8)
-                        .fill(Color.white.opacity(0.05))
+                        .fill(Color(.tertiarySystemBackground))
                 )
         }
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color.white.opacity(0.05))
+                .fill(Color(.secondarySystemBackground))
         )
     }
 }

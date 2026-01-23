@@ -16,18 +16,6 @@ class SQLAutocomplete {
             case function
         }
 
-        var icon: String {
-            switch type {
-            case .keyword:
-                return "terminal"
-            case .table:
-                return "tablecells"
-            case .column:
-                return "line.3.horizontal"
-            case .function:
-                return "function"
-            }
-        }
     }
 
     private static let sqlKeywords = [

@@ -5,7 +5,7 @@ struct AddConnectionView: View {
 
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var appState: AppState
-    @StateObject private var databaseService = DatabaseService()
+    @EnvironmentObject var databaseService: DatabaseService
 
     @State private var name = ""
     @State private var selectedType: DatabaseType = .postgresql
@@ -24,155 +24,152 @@ struct AddConnectionView: View {
     }
 
     var body: some View {
-        NavigationView {
-            ZStack {
-                Color.black.ignoresSafeArea()
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 24) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Connection Name")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.secondary)
 
-                ScrollView {
-                    VStack(spacing: 24) {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Connection Name")
-                                .font(.system(size: 14, weight: .medium))
-                                .foregroundColor(.white.opacity(0.7))
+                        TextField("My Database", text: $name)
+                            .textFieldStyle(CustomTextFieldStyle())
+                    }
 
-                            TextField("My Database", text: $name)
-                                .textFieldStyle(CustomTextFieldStyle())
-                        }
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Database Type")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.secondary)
 
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Database Type")
-                                .font(.system(size: 14, weight: .medium))
-                                .foregroundColor(.white.opacity(0.7))
-
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: 12) {
-                                    ForEach(DatabaseType.allCases, id: \.self) { type in
-                                        DatabaseTypeButton(
-                                            type: type,
-                                            isSelected: selectedType == type,
-                                            action: {
-                                                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                                                    selectedType = type
-                                                    port = String(type.defaultPort)
-                                                }
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 12) {
+                                ForEach(DatabaseType.allCases, id: \.self) { type in
+                                    DatabaseTypeButton(
+                                        type: type,
+                                        isSelected: selectedType == type,
+                                        action: {
+                                            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                                selectedType = type
+                                                port = String(type.defaultPort)
                                             }
-                                        )
-                                    }
+                                        }
+                                    )
                                 }
                             }
                         }
+                    }
 
-                        if selectedType != .sqlite {
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("Host")
-                                    .font(.system(size: 14, weight: .medium))
-                                    .foregroundColor(.white.opacity(0.7))
-
-                                TextField("localhost", text: $host)
-                                    .textFieldStyle(CustomTextFieldStyle())
-                                    .autocapitalization(.none)
-                            }
-
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("Port")
-                                    .font(.system(size: 14, weight: .medium))
-                                    .foregroundColor(.white.opacity(0.7))
-
-                                TextField("5432", text: $port)
-                                    .textFieldStyle(CustomTextFieldStyle())
-                                    .keyboardType(.numberPad)
-                            }
-                        }
-
+                    if selectedType != .sqlite {
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Database")
+                            Text("Host")
                                 .font(.system(size: 14, weight: .medium))
-                                .foregroundColor(.white.opacity(0.7))
+                                .foregroundColor(.secondary)
 
-                            TextField(selectedType == .sqlite ? "database.db" : "mydatabase", text: $database)
+                            TextField("localhost", text: $host)
                                 .textFieldStyle(CustomTextFieldStyle())
                                 .autocapitalization(.none)
                         }
 
-                        if selectedType != .sqlite {
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("Username")
-                                    .font(.system(size: 14, weight: .medium))
-                                    .foregroundColor(.white.opacity(0.7))
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Port")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(.secondary)
 
-                                TextField("username", text: $username)
-                                    .textFieldStyle(CustomTextFieldStyle())
-                                    .autocapitalization(.none)
-                            }
+                            TextField("5432", text: $port)
+                                .textFieldStyle(CustomTextFieldStyle())
+                                .keyboardType(.numberPad)
+                        }
+                    }
 
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("Password")
-                                    .font(.system(size: 14, weight: .medium))
-                                    .foregroundColor(.white.opacity(0.7))
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Database")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.secondary)
 
-                                SecureField("password", text: $password)
-                                    .textFieldStyle(CustomTextFieldStyle())
-                            }
+                        TextField(selectedType == .sqlite ? "database.db" : "mydatabase", text: $database)
+                            .textFieldStyle(CustomTextFieldStyle())
+                            .autocapitalization(.none)
+                    }
 
-                            SSHConfigSection(sshConfig: $sshConfig)
+                    if selectedType != .sqlite {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Username")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(.secondary)
+
+                            TextField("username", text: $username)
+                                .textFieldStyle(CustomTextFieldStyle())
+                                .autocapitalization(.none)
                         }
 
-                        if let result = testResult {
-                            HStack(spacing: 12) {
-                                Image(systemName: result.isSuccess ? "checkmark.circle.fill" : "xmark.circle.fill")
-                                    .foregroundColor(result.isSuccess ? .green : .red)
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Password")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(.secondary)
 
-                                Text(result.isSuccess ? "Connection successful!" : "Connection failed")
-                                    .font(.system(size: 14, weight: .medium))
-                                    .foregroundColor(result.isSuccess ? .green : .red)
-
-                                Spacer()
-                            }
-                            .padding()
-                            .background(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill((result.isSuccess ? Color.green : Color.red).opacity(0.2))
-                            )
-                            .transition(.scale.combined(with: .opacity))
+                            SecureField("password", text: $password)
+                                .textFieldStyle(CustomTextFieldStyle())
                         }
 
-                        Button(action: testConnection) {
-                            HStack(spacing: 8) {
-                                if isTestingConnection {
-                                    ProgressView()
-                                        .tint(.white)
-                                } else {
-                                    Image(systemName: "antenna.radiowaves.left.and.right")
-                                    Text("Test Connection")
-                                }
+                        SSHConfigSection(sshConfig: $sshConfig)
+                    }
+
+                    if let result = testResult {
+                        HStack(spacing: 12) {
+                            Image(systemName: result.isSuccess ? "checkmark.circle.fill" : "xmark.circle.fill")
+                                .foregroundColor(result.isSuccess ? .green : .red)
+
+                            Text(result.isSuccess ? "Connection successful!" : "Connection failed")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(result.isSuccess ? .green : .red)
+
+                            Spacer()
+                        }
+                        .padding()
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill((result.isSuccess ? Color.green : Color.red).opacity(0.15))
+                        )
+                        .transition(.scale.combined(with: .opacity))
+                    }
+
+                    Button(action: testConnection) {
+                        HStack(spacing: 8) {
+                            if isTestingConnection {
+                                ProgressView()
+                                    .tint(.primary)
+                            } else {
+                                Image(systemName: "antenna.radiowaves.left.and.right")
+                                Text("Test Connection")
                             }
-                            .font(.system(size: 16, weight: .medium))
+                        }
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(.primary)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 50)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color(.secondarySystemBackground))
+                        )
+                    }
+                    .disabled(isTestingConnection || !isFormValid)
+
+                    Button(action: saveConnection) {
+                        Text("Save Connection")
+                            .font(.system(size: 16, weight: .semibold))
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
                             .frame(height: 50)
                             .background(
                                 RoundedRectangle(cornerRadius: 12)
-                                    .fill(Color.white.opacity(0.1))
+                                    .fill(isFormValid ? Color.blue : Color.blue.opacity(0.5))
                             )
-                        }
-                        .disabled(isTestingConnection || !isFormValid)
-
-                        Button(action: saveConnection) {
-                            Text("Save Connection")
-                                .font(.system(size: 16, weight: .semibold))
-                                .foregroundColor(.black)
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 50)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .fill(isFormValid ? .white : Color.white.opacity(0.3))
-                                )
-                        }
-                        .disabled(!isFormValid)
                     }
-                    .padding()
+                    .disabled(!isFormValid)
                 }
+                .padding()
             }
+            .background(Color(.systemBackground))
             .navigationTitle("New Connection")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -180,7 +177,6 @@ struct AddConnectionView: View {
                     Button("Cancel") {
                         dismiss()
                     }
-                    .foregroundColor(.white)
                 }
             }
         }
@@ -233,10 +229,8 @@ struct AddConnectionView: View {
         )
 
         if let onSave = onSave {
-            // Use callback if provided (from ConnectionsListView)
             onSave(connection)
         } else {
-            // Fallback to appState for backwards compatibility
             withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
                 appState.addConnection(connection)
             }
@@ -262,23 +256,27 @@ struct DatabaseTypeButton: View {
             VStack(spacing: 8) {
                 ZStack {
                     Circle()
-                        .fill(isSelected ? type.color.opacity(0.2) : Color.white.opacity(0.05))
+                        .fill(isSelected ? type.color.opacity(0.15) : Color(.secondarySystemBackground))
                         .frame(width: 60, height: 60)
 
                     Image(systemName: type.icon)
                         .font(.system(size: 28))
-                        .foregroundColor(isSelected ? type.color : .white.opacity(0.5))
+                        .foregroundColor(isSelected ? type.color : .secondary)
                 }
 
                 Text(type.rawValue)
                     .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(isSelected ? .white : .white.opacity(0.5))
+                    .foregroundColor(isSelected ? .primary : .secondary)
             }
             .frame(width: 90)
             .padding(.vertical, 12)
             .background(
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(isSelected ? Color.white.opacity(0.1) : Color.clear)
+                    .fill(isSelected ? Color(.secondarySystemBackground) : Color.clear)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(isSelected ? type.color : Color.clear, lineWidth: 1)
             )
         }
     }
@@ -288,11 +286,11 @@ struct CustomTextFieldStyle: TextFieldStyle {
     func _body(configuration: TextField<Self._Label>) -> some View {
         configuration
             .font(.system(size: 16))
-            .foregroundColor(.white)
+            .foregroundColor(.primary)
             .padding()
             .background(
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.white.opacity(0.1))
+                    .fill(Color(.secondarySystemBackground))
             )
     }
 }
@@ -314,7 +312,7 @@ struct SSHConfigSection: View {
 
                     Text("SSH Tunnel")
                         .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(.white)
+                        .foregroundColor(.primary)
 
                     Spacer()
 
@@ -324,7 +322,7 @@ struct SSHConfigSection: View {
 
                     Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
                         .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(.white.opacity(0.5))
+                        .foregroundColor(.secondary)
                 }
                 .padding()
                 .background(
@@ -338,7 +336,7 @@ struct SSHConfigSection: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("SSH Host")
                             .font(.system(size: 14, weight: .medium))
-                            .foregroundColor(.white.opacity(0.7))
+                            .foregroundColor(.secondary)
 
                         TextField("ssh.example.com", text: $sshConfig.host)
                             .textFieldStyle(CustomTextFieldStyle())
@@ -348,7 +346,7 @@ struct SSHConfigSection: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("SSH Port")
                             .font(.system(size: 14, weight: .medium))
-                            .foregroundColor(.white.opacity(0.7))
+                            .foregroundColor(.secondary)
 
                         TextField("22", value: $sshConfig.port, format: .number)
                             .textFieldStyle(CustomTextFieldStyle())
@@ -358,7 +356,7 @@ struct SSHConfigSection: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("SSH Username")
                             .font(.system(size: 14, weight: .medium))
-                            .foregroundColor(.white.opacity(0.7))
+                            .foregroundColor(.secondary)
 
                         TextField("username", text: $sshConfig.username)
                             .textFieldStyle(CustomTextFieldStyle())
@@ -369,11 +367,11 @@ struct SSHConfigSection: View {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("Use Key Authentication")
                                 .font(.system(size: 14, weight: .medium))
-                                .foregroundColor(.white)
+                                .foregroundColor(.primary)
 
                             Text("Use private key instead of password")
                                 .font(.system(size: 12))
-                                .foregroundColor(.white.opacity(0.5))
+                                .foregroundColor(.secondary)
                         }
                     }
                     .tint(.purple)
@@ -382,7 +380,7 @@ struct SSHConfigSection: View {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Private Key Path")
                                 .font(.system(size: 14, weight: .medium))
-                                .foregroundColor(.white.opacity(0.7))
+                                .foregroundColor(.secondary)
 
                             TextField("~/.ssh/id_rsa", text: Binding(
                                 get: { sshConfig.privateKeyPath ?? "" },
@@ -395,7 +393,7 @@ struct SSHConfigSection: View {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("SSH Password")
                                 .font(.system(size: 14, weight: .medium))
-                                .foregroundColor(.white.opacity(0.7))
+                                .foregroundColor(.secondary)
 
                             SecureField("password", text: $sshConfig.password)
                                 .textFieldStyle(CustomTextFieldStyle())
@@ -405,7 +403,7 @@ struct SSHConfigSection: View {
                 .padding()
                 .background(
                     RoundedRectangle(cornerRadius: 12)
-                        .fill(Color.white.opacity(0.05))
+                        .fill(Color(.secondarySystemBackground))
                 )
                 .transition(.opacity.combined(with: .move(edge: .top)))
             }
