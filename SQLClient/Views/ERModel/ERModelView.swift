@@ -1,4 +1,5 @@
 import SwiftUI
+import Photos
 
 struct ERModelView: View {
     @ObservedObject var workspace: WorkspaceTab
@@ -79,6 +80,7 @@ struct ERModelView: View {
                         .cornerRadius(8)
                 }
                 .buttonStyle(.plain)
+                .disabled(workspace.schema?.tables.isEmpty ?? true)
 
                 Button(action: { showingExportOptions = true }) {
                     Image(systemName: "square.and.arrow.up")
@@ -89,6 +91,7 @@ struct ERModelView: View {
                         .cornerRadius(8)
                 }
                 .buttonStyle(.plain)
+                .disabled(workspace.schema?.tables.isEmpty ?? true)
 
                 Divider()
                     .frame(height: 24)
@@ -147,12 +150,15 @@ struct ERModelView: View {
             Button("Save as PNG") {
                 exportAsImage(format: .png)
             }
+            .disabled(workspace.schema?.tables.isEmpty ?? true)
             Button("Save as JPEG") {
                 exportAsImage(format: .jpeg)
             }
+            .disabled(workspace.schema?.tables.isEmpty ?? true)
             Button("Share Image") {
                 exportAndShare()
             }
+            .disabled(workspace.schema?.tables.isEmpty ?? true)
             Button("Cancel", role: .cancel) {}
         }
         .sheet(item: Binding(
@@ -202,6 +208,14 @@ struct ERModelView: View {
 
     private func exportAsImage(format: ImageExportFormat) {
         guard let schema = workspace.schema else { return }
+        guard !schema.tables.isEmpty else {
+            // Show alert for empty schema
+            return
+        }
+        if workspace.tablePositions.isEmpty {
+            // Initialize positions if not set
+            initializePositions(in: CGSize(width: 2000, height: 2000))
+        }
 
         isExporting = true
 
@@ -213,6 +227,9 @@ struct ERModelView: View {
 
                 if let image = image {
                     saveImageToPhotos(image: image, format: format)
+                } else {
+                    // Handle image generation failure
+                    print("Failed to generate image")
                 }
             }
         }
@@ -220,6 +237,10 @@ struct ERModelView: View {
 
     private func exportAndShare() {
         guard let schema = workspace.schema else { return }
+        guard !schema.tables.isEmpty else { return }
+        if workspace.tablePositions.isEmpty {
+            initializePositions(in: CGSize(width: 2000, height: 2000))
+        }
 
         isExporting = true
 
@@ -228,32 +249,54 @@ struct ERModelView: View {
 
             await MainActor.run {
                 isExporting = false
-                exportedImage = image
+                if let image = image {
+                    exportedImage = image
+                }
             }
         }
     }
 
     @MainActor
     private func generateERImage(schema: DatabaseSchema, positions: [String: CGPoint]) async -> UIImage? {
+        guard !schema.tables.isEmpty else { return nil }
+        guard !positions.isEmpty else { return nil }
+
         // Calculate bounds
         let bounds = calculateBounds(positions: positions)
         let padding: CGFloat = 100
-        let width = bounds.maxX - bounds.minX + padding * 2
-        let height = bounds.maxY - bounds.minY + padding * 2
+        var width = bounds.maxX - bounds.minX + padding * 2
+        var height = bounds.maxY - bounds.minY + padding * 2
+
+        // Limit maximum size to prevent crashes on large diagrams
+        let maxSize: CGFloat = 4096
+        let scaleFactor: CGFloat
+        if width > maxSize || height > maxSize {
+            scaleFactor = min(maxSize / width, maxSize / height)
+            width *= scaleFactor
+            height *= scaleFactor
+        } else {
+            scaleFactor = 1.0
+        }
+
+        // Scale positions
+        var scaledPositions: [String: CGPoint] = [:]
+        for (name, pos) in positions {
+            scaledPositions[name] = CGPoint(x: (pos.x - bounds.minX + padding) * scaleFactor, y: (pos.y - bounds.minY + padding) * scaleFactor)
+        }
 
         // Create the exportable view
         let exportView = ERExportView(
             schema: schema,
-            positions: positions,
-            offsetX: -bounds.minX + padding,
-            offsetY: -bounds.minY + padding,
+            positions: scaledPositions,
+            offsetX: 0, // Positions are already adjusted
+            offsetY: 0,
             width: width,
             height: height
         )
         .frame(width: width, height: height)
 
         let renderer = ImageRenderer(content: exportView)
-        renderer.scale = 2.0 // Higher resolution
+        renderer.scale = 1.0 // Reduced scale for better compatibility
 
         return renderer.uiImage
     }
@@ -279,27 +322,13 @@ struct ERModelView: View {
     }
 
     private func saveImageToPhotos(image: UIImage, format: ImageExportFormat) {
-        let tempDir = FileManager.default.temporaryDirectory
-        let filename = "ER_Diagram_\(workspace.connection.database).\(format.extension)"
-        let fileURL = tempDir.appendingPathComponent(filename)
-
-        do {
-            let data: Data?
-            switch format {
-            case .png:
-                data = image.pngData()
-            case .jpeg:
-                data = image.jpegData(compressionQuality: 0.9)
+        PHPhotoLibrary.shared().performChanges {
+            let request = PHAssetCreationRequest.forAsset()
+            request.addResource(with: .photo, data: image.pngData()!, options: nil)
+        } completionHandler: { success, error in
+            if let error = error {
+                print("Error saving image to photos: \(error)")
             }
-
-            if let data = data {
-                try data.write(to: fileURL)
-
-                // Save to Photos
-                UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil)
-            }
-        } catch {
-            print("Failed to save image: \(error)")
         }
     }
 }
