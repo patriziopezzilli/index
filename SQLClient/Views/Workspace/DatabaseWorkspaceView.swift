@@ -95,6 +95,14 @@ struct DatabaseWorkspaceView: View {
                 .transition(.opacity)
             }
         }
+        .alert("Disconnect from Database", isPresented: $showingDisconnectAlert) {
+            Button("Cancel", role: .cancel) { }
+            Button("Disconnect", role: .destructive) {
+                disconnectAndReturnToConnections()
+            }
+        } message: {
+            Text("Are you sure you want to disconnect from \(workspace.connection.name)? Any unsaved changes will be lost.")
+        }
     }
 
     // MARK: - iPhone Layout
@@ -174,14 +182,6 @@ struct DatabaseWorkspaceView: View {
             if showingSidebarSheet {
                 showingSidebarSheet = false
             }
-        }
-        .alert("Disconnect from Database", isPresented: $showingDisconnectAlert) {
-            Button("Cancel", role: .cancel) { }
-            Button("Disconnect", role: .destructive) {
-                disconnectAndReturnToConnections()
-            }
-        } message: {
-            Text("Are you sure you want to disconnect from \(workspace.connection.name)? Any unsaved changes will be lost.")
         }
     }
 
